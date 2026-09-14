@@ -1,647 +1,79 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Cyber Protection Group | Cyber Security Quote Calculator</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  
-  <style>
-    :root {
-      --cpg-navy-dark: #0a1128;
-      --cpg-navy-card: #101c3d;
-      --cpg-blue-primary: #0066ff;
-      --cpg-blue-glow: #00d2ff;
-      --cpg-accent-green: #00e676;
-      --cpg-text-main: #f0f4f8;
-      --cpg-text-muted: #94a3b8;
-      --cpg-border-color: rgba(0, 210, 255, 0.2);
-      --cpg-glass-bg: rgba(16, 28, 61, 0.85);
-      --cpg-font: 'Plus Jakarta Sans', sans-serif;
-    }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    body {
-      background-color: var(--cpg-navy-dark);
-      background-image: 
-        radial-gradient(circle at 10% 20%, rgba(0, 102, 255, 0.15) 0%, transparent 40%),
-        radial-gradient(circle at 90% 80%, rgba(0, 210, 255, 0.12) 0%, transparent 40%);
-      color: var(--cpg-text-main);
-      font-family: var(--cpg-font);
-      line-height: 1.6;
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 24px 16px;
-    }
-
-    .quote-container {
-      width: 100%;
-      max-width: 820px;
-      background: var(--cpg-glass-bg);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      border: 1px solid var(--cpg-border-color);
-      border-radius: 20px;
-      padding: 40px;
-      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
-      position: relative;
-    }
-
-    .quote-container::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 4px;
-      background: linear-gradient(90deg, var(--cpg-blue-primary), var(--cpg-blue-glow));
-    }
-
-    .brand-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      background: rgba(0, 210, 255, 0.1);
-      color: var(--cpg-blue-glow);
-      padding: 6px 14px;
-      border-radius: 50px;
-      font-size: 0.825rem;
-      font-weight: 700;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      margin-bottom: 16px;
-      border: 1px solid rgba(0, 210, 255, 0.3);
-    }
-
-    h1 {
-      font-size: 2rem;
-      font-weight: 800;
-      margin-bottom: 8px;
-      background: linear-gradient(135deg, #ffffff 30%, var(--cpg-blue-glow) 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-
-    .subtitle {
-      color: var(--cpg-text-muted);
-      font-size: 0.95rem;
-      margin-bottom: 28px;
-    }
-
-    /* Progress Indicators */
-    .progress-bar-wrap {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 32px;
-      position: relative;
-    }
-
-    .progress-bar-wrap::before {
-      content: '';
-      position: absolute;
-      top: 50%;
-      left: 0; right: 0;
-      height: 2px;
-      background: rgba(255, 255, 255, 0.1);
-      z-index: 1;
-      transform: translateY(-50%);
-    }
-
-    .step-indicator {
-      width: 38px;
-      height: 38px;
-      border-radius: 50%;
-      background: var(--cpg-navy-dark);
-      border: 2px solid rgba(255, 255, 255, 0.2);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 700;
-      font-size: 0.9rem;
-      color: var(--cpg-text-muted);
-      z-index: 2;
-      transition: all 0.3s ease;
-    }
-
-    .step-indicator.active {
-      border-color: var(--cpg-blue-glow);
-      background: var(--cpg-blue-primary);
-      color: #fff;
-      box-shadow: 0 0 15px var(--cpg-blue-primary);
-    }
-
-    /* Step Visibility Control */
-    .form-step {
-      display: none;
-    }
-
-    .form-step.active {
-      display: block;
-      animation: fadeIn 0.35s ease-in-out forwards;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(8px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    .step-title {
-      font-size: 1.2rem;
-      font-weight: 700;
-      margin-bottom: 20px;
-      color: #fff;
-    }
-
-    .input-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 16px;
-      margin-bottom: 24px;
-    }
-
-    .field-group {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    label {
-      font-size: 0.85rem;
-      font-weight: 600;
-      color: var(--cpg-text-muted);
-    }
-
-    input[type="number"], select {
-      width: 100%;
-      background: rgba(10, 17, 40, 0.8);
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      border-radius: 10px;
-      padding: 12px 14px;
-      color: #fff;
-      font-family: inherit;
-      font-size: 0.95rem;
-      outline: none;
-      transition: all 0.3s ease;
-    }
-
-    input[type="number"]:focus, select:focus {
-      border-color: var(--cpg-blue-glow);
-      box-shadow: 0 0 0 3px rgba(0, 210, 255, 0.2);
-    }
-
-    select option {
-      background-color: var(--cpg-navy-dark);
-      color: #fff;
-    }
-
-    .checkbox-grid {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 12px;
-      margin-bottom: 24px;
-    }
-
-    .checkbox-card {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      background: rgba(10, 17, 40, 0.5);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      padding: 14px 18px;
-      border-radius: 10px;
-      cursor: pointer;
-      transition: all 0.25s ease;
-    }
-
-    .checkbox-card:hover {
-      border-color: rgba(0, 210, 255, 0.4);
-      background: rgba(0, 102, 255, 0.08);
-    }
-
-    .checkbox-card input[type="checkbox"] {
-      width: 20px;
-      height: 20px;
-      accent-color: var(--cpg-blue-glow);
-      cursor: pointer;
-    }
-
-    .checkbox-label {
-      font-size: 0.9rem;
-      color: var(--cpg-text-main);
-    }
-
-    .btn-group {
-      display: flex;
-      justify-content: space-between;
-      gap: 16px;
-      margin-top: 28px;
-    }
-
-    .btn {
-      padding: 12px 24px;
-      border-radius: 10px;
-      font-size: 0.9rem;
-      font-weight: 700;
-      cursor: pointer;
-      border: none;
-      transition: all 0.25s ease;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .btn-primary {
-      background: linear-gradient(135deg, var(--cpg-blue-primary), #0044cc);
-      color: #fff;
-      box-shadow: 0 4px 15px rgba(0, 102, 255, 0.3);
-    }
-
-    .btn-primary:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(0, 210, 255, 0.5);
-    }
-
-    .btn-secondary {
-      background: rgba(255, 255, 255, 0.08);
-      color: var(--cpg-text-muted);
-      border: 1px solid rgba(255, 255, 255, 0.15);
-    }
-
-    .btn-secondary:hover {
-      background: rgba(255, 255, 255, 0.15);
-      color: #fff;
-    }
-
-    .results-card {
-      background: rgba(10, 17, 40, 0.9);
-      border: 1px solid var(--cpg-blue-glow);
-      border-radius: 14px;
-      padding: 20px;
-    }
-
-    .result-item {
-      display: flex;
-      justify-content: space-between;
-      padding: 10px 0;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-      font-size: 0.9rem;
-    }
-
-    .price-tag {
-      font-weight: 700;
-      color: var(--cpg-blue-glow);
-    }
-
-    .total-banner {
-      margin-top: 18px;
-      padding: 16px;
-      background: linear-gradient(135deg, rgba(0, 102, 255, 0.2), rgba(0, 230, 118, 0.15));
-      border: 1px solid var(--cpg-accent-green);
-      border-radius: 10px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .total-price {
-      font-size: 1.6rem;
-      font-weight: 800;
-      color: var(--cpg-accent-green);
-    }
-  </style>
+  <meta charset="UTF-8">
+  <title>CPG Quote Generator</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 <body>
 
-<div class="quote-container">
-  <div class="brand-badge">🛡️ Cyber Protection Group</div>
-  <h1>Interactive Security Quote Tool</h1>
-  <p class="subtitle">Tailored cyber security coverage mapped to your organization's risk profile.</p>
+<div class="quote-app-container">
+  <!-- Progress Header -->
+  <div id="step-indicator" class="step-indicator"></div>
 
-  <div class="progress-bar-wrap">
-    <div class="step-indicator active" id="ind-1">1</div>
-    <div class="step-indicator" id="ind-2">2</div>
-    <div class="step-indicator" id="ind-3">3</div>
-    <div class="step-indicator" id="ind-4">4</div>
-  </div>
-
-  <form id="cpg-form" onsubmit="return false;">
+  <form id="cpg-multi-page-form" onsubmit="event.preventDefault();">
     
-    <!-- STEP 1: Baseline Environment -->
-    <div class="form-step active" id="step-1">
-      <div class="step-title">1. Infrastructure & Workforce Scale</div>
+    <!-- PAGE 1: Customer Details -->
+    <div class="form-page active-page" id="page-customer-details">
+      <h2>1. Customer & Quote Details</h2>
       <div class="input-grid">
-        <div class="field-group">
-          <label for="userCount">Staff / User Licenses</label>
-          <input type="number" id="userCount" min="1" max="300" value="10" required>
-        </div>
-        <div class="field-group">
-          <label for="windowsQty">Windows PCs / Laptops</label>
-          <input type="number" id="windowsQty" min="0" value="10">
-        </div>
-        <div class="field-group">
-          <label for="macQty">Apple Mac Workstations</label>
-          <input type="number" id="macQty" min="0" value="0">
-        </div>
-        <div class="field-group">
-          <label for="serverQty">Windows Servers</label>
-          <input type="number" id="serverQty" min="0" value="1">
-        </div>
+        <label>Company Name: <input type="text" id="cust-company-name" required placeholder="e.g. South Essex Sealed Units LTD"></label>
+        <label>Attention Contact: <input type="text" id="cust-attention" placeholder="e.g. Carl Hicks"></label>
+        <label>Contact Phone Number: <input type="tel" id="cust-phone" placeholder="e.g. +44 1234 567890"></label>
+        <label>Address Line 1: <input type="text" id="cust-addr1" placeholder="UNIT 2 BEAVER ROAD"></label>
+        <label>Address Line 2: <input type="text" id="cust-addr2" placeholder="HAINAULT BUSINESS PARK"></label>
+        <label>City / Town: <input type="text" id="cust-city" placeholder="HAINAULT, ESSEX"></label>
+        <label>Postcode: <input type="text" id="cust-postcode" placeholder="IG6 3UT"></label>
+        <label>Quote Number: <input type="text" id="quote-number" value="QU-1006"></label>
+        <label>Quote Reference: <input type="text" id="quote-ref" value="Reference: MBCH-01"></label>
       </div>
-
-      <div class="checkbox-grid">
-        <label class="checkbox-card">
-          <input type="checkbox" id="hasM365" checked>
-          <span class="checkbox-label">Uses Microsoft 365 or Google Workspace Email & Cloud Services</span>
-        </label>
-        <label class="checkbox-card">
-          <input type="checkbox" id="hasMobile" checked>
-          <span class="checkbox-label">Employees access work emails/apps on iOS or Android Mobile Phones</span>
-        </label>
-      </div>
-
-      <div class="btn-group">
-        <div></div>
-        <button type="button" class="btn btn-primary" onclick="goToStep(2)">Continue to Sector Risk →</button>
+      <div class="nav-buttons">
+        <button type="button" class="btn-next" onclick="nextPage()">Next: Select Products &rarr;</button>
       </div>
     </div>
 
-    <!-- STEP 2: Sector Risk Profiling -->
-    <div class="form-step" id="step-2">
-      <div class="step-title">2. Sector Risk Profiling</div>
-      <div class="field-group" style="margin-bottom: 20px;">
-        <label for="industrySelect">Select Your Business Sector:</label>
-        <select id="industrySelect" onchange="updateSectorQuestions(this.value)">
-          <option value="general">General Commercial / Other</option>
-          <option value="accounting">Accountants & Financial Services</option>
-          <option value="legal">Solicitors & Legal Services</option>
-          <option value="healthcare">Healthcare & Dentists</option>
-          <option value="retail">Retail & E-Commerce</option>
-        </select>
-      </div>
+    <!-- DYNAMIC PRODUCT PAGES (Injected by JS) -->
+    <div id="dynamic-category-pages"></div>
 
-      <div id="dynamicSectorContainer" class="checkbox-grid"></div>
-
-      <div class="btn-group">
-        <button type="button" class="btn btn-secondary" onclick="goToStep(1)">← Back</button>
-        <button type="button" class="btn btn-primary" onclick="goToStep(3)">Next: Infrastructure Gaps →</button>
-      </div>
-    </div>
-
-    <!-- STEP 3: Gap Check & Add-Ons -->
-    <div class="form-step" id="step-3">
-      <div class="step-title">3. Security Gaps & Infrastructure Add-Ons</div>
-      <div class="checkbox-grid">
-        <label class="checkbox-card">
-          <input type="checkbox" id="optDNS" checked>
-          <span class="checkbox-label">Block malicious websites & phishing links at DNS level (DNS Security)</span>
-        </label>
-        <label class="checkbox-card">
-          <input type="checkbox" id="optRemote">
-          <span class="checkbox-label">Secure remote access for home workers & RDP admin connections</span>
-        </label>
-        <label class="checkbox-card">
-          <input type="checkbox" id="optDarkWeb" checked>
-          <span class="checkbox-label">Continuous Dark Web monitoring for leaked employee passwords</span>
-        </label>
-        <label class="checkbox-card">
-          <input type="checkbox" id="optTraining">
-          <span class="checkbox-label">Automated Staff Phishing Simulations & Security Awareness Training</span>
-        </label>
-      </div>
-
-      <div class="btn-group">
-        <button type="button" class="btn btn-secondary" onclick="goToStep(2)">← Back</button>
-        <button type="button" class="btn btn-primary" onclick="generateQuote()">Calculate Official Quote ✨</button>
-      </div>
-    </div>
-
-    <!-- STEP 4: Quote Breakdown -->
-    <div class="form-step" id="step-4">
-      <div class="step-title">4. Recommended Security Package Quote</div>
-      <div class="results-card">
-        <div id="quoteBreakdown"></div>
-        <div class="total-banner">
-          <div>
-            <h3>Estimated Monthly Investment</h3>
-            <span style="font-size:0.8rem; color:var(--cpg-text-muted);">Excluding VAT. Calculated using CPG master catalog rates.</span>
-          </div>
-          <div class="total-price" id="grandTotal">£0.00</div>
+    <!-- FINAL PAGE: Summary & PDF Export -->
+    <div class="form-page" id="page-summary">
+      <h2>Quote Summary & Review</h2>
+      <div id="summary-table-container"></div>
+      
+      <!-- Global Discount Option (If no page discounts were applied) -->
+      <div id="global-discount-container" class="discount-box" style="display:none;">
+        <p><strong>Apply Global Discount to All Products:</strong></p>
+        <div class="radio-group">
+          <label><input type="radio" name="global_discount" value="0" checked onclick="applyGlobalDiscount(0)"> 0%</label>
+          <label><input type="radio" name="global_discount" value="10" onclick="applyGlobalDiscount(10)"> 10%</label>
+          <label><input type="radio" name="global_discount" value="20" onclick="applyGlobalDiscount(20)"> 20%</label>
+          <label><input type="radio" name="global_discount" value="25" onclick="applyGlobalDiscount(25)"> 25%</label>
+          <label><input type="radio" name="global_discount" value="30" onclick="applyGlobalDiscount(30)"> 30%</label>
+          <label><input type="radio" name="global_discount" value="40" onclick="applyGlobalDiscount(40)"> 40%</label>
+          <label><input type="radio" name="global_discount" value="50" onclick="applyGlobalDiscount(50)"> 50%</label>
         </div>
       </div>
 
-      <div class="btn-group">
-        <button type="button" class="btn btn-secondary" onclick="goToStep(3)">← Modify Options</button>
-        <button type="button" class="btn btn-primary" onclick="alert('Quote submitted successfully!')">Request Formal Proposal</button>
+      <div class="nav-buttons">
+        <button type="button" class="btn-prev" onclick="prevPage()">&larr; Back</button>
+        <button type="button" class="btn-action" onclick="previewPDF()">Preview Quote</button>
+        <button type="button" class="btn-submit" onclick="downloadPDF()">Download PDF Quote</button>
       </div>
     </div>
 
   </form>
 </div>
 
-<script>
-  // CPG Products Selling Prices Matrix (Master Tab Data)
-  const CPG_PRICES = {
-    'CD-01': 8.60,   // Windows Endpoint Protection
-    'CD-02': 8.60,   // Server Endpoint Protection
-    'CD-03': 8.60,   // Mac Endpoint Protection
-    'CD-06': 2.10,   // Email Security & Phishing Defense
-    'CD-09': 1.43,   // DNS Security
-    'CD-04': 2.50,   // Remote Desktop Protection
-    'CA-01': 10.00,  // Mobile Protection (iOS/Android)
-    'CB-01': 2.31,   // M365 / Workspace Backup
-    'CB-05': 9.80,   // Xero / Accounting Backup
-    'CS-01': 6.15,   // Dark Web Monitoring
-    'CAS-07': 9.00   // Security Awareness Training
-  };
+<!-- Modal Container for PDF Preview -->
+<div id="pdf-modal" class="modal" style="display:none;">
+  <div class="modal-content">
+    <span class="close-btn" onclick="closeModal()">&times;</span>
+    <div id="pdf-preview-target"></div>
+  </div>
+</div>
 
-  // Unified Step Navigation Function
-  function goToStep(stepNum) {
-    if (stepNum > 1) {
-      const userCountInput = document.getElementById('userCount');
-      if (userCountInput && !userCountInput.checkValidity()) {
-        userCountInput.reportValidity();
-        return;
-      }
-    }
-
-    // Hide all step containers
-    document.querySelectorAll('.form-step').forEach(step => {
-      step.classList.remove('active');
-    });
-
-    // Update Progress Bar
-    document.querySelectorAll('.step-indicator').forEach((ind, idx) => {
-      if (idx < stepNum) ind.classList.add('active');
-      else ind.classList.remove('active');
-    });
-
-    // Show target step
-    const target = document.getElementById(`step-${stepNum}`);
-    if (target) {
-      target.classList.add('active');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-  }
-
-  // Inject Sector-Specific Options
-  function updateSectorQuestions(sector) {
-    const container = document.getElementById('dynamicSectorContainer');
-    if (!container) return;
-    
-    let html = '';
-
-    if (sector === 'accounting') {
-      html = `
-        <label class="checkbox-card">
-          <input type="checkbox" id="optXero" checked>
-          <span class="checkbox-label">Back up cloud accounting platforms like Xero/QuickBooks (£9.80/mo)</span>
-        </label>`;
-    } else if (sector === 'legal') {
-      html = `
-        <label class="checkbox-card">
-          <input type="checkbox" id="optEmailProt" checked>
-          <span class="checkbox-label">Enhance Email Anti-Phishing & Document Protection (£2.10/user)</span>
-        </label>`;
-    } else if (sector === 'healthcare') {
-      html = `
-        <label class="checkbox-card">
-          <input type="checkbox" id="optMobileProt" checked>
-          <span class="checkbox-label">Mandatory Mobile Endpoint Protection for clinical devices (£10.00/user)</span>
-        </label>`;
-    } else if (sector === 'retail') {
-      html = `
-        <label class="checkbox-card">
-          <input type="checkbox" id="optDarkWebRetail" checked>
-          <span class="checkbox-label">Monitor store logins & employee credentials on dark web (£6.15/user)</span>
-        </label>`;
-    } else {
-      html = `<p style="color:var(--cpg-text-muted); font-size:0.85rem;">Standard baseline security options apply.</p>`;
-    }
-
-    container.innerHTML = html;
-  }
-
-  // Initialize Default Sector
-  document.addEventListener('DOMContentLoaded', () => {
-    updateSectorQuestions('general');
-  });
-
-  // Calculate Product Quote
-  function generateQuote() {
-    try {
-      const users = Math.max(1, parseInt(document.getElementById('userCount')?.value) || 1);
-      const winQty = Math.max(0, parseInt(document.getElementById('windowsQty')?.value) || 0);
-      const macQty = Math.max(0, parseInt(document.getElementById('macQty')?.value) || 0);
-      const srvQty = Math.max(0, parseInt(document.getElementById('serverQty')?.value) || 0);
-
-      let items = [];
-      let grandTotal = 0;
-
-      // Endpoint protection calculations
-      if (winQty > 0) {
-        let cost = winQty * CPG_PRICES['CD-01'];
-        items.push({ name: `Windows Endpoints (${winQty})`, cost: cost });
-        grandTotal += cost;
-      }
-      if (macQty > 0) {
-        let cost = macQty * CPG_PRICES['CD-03'];
-        items.push({ name: `Apple Mac Endpoints (${macQty})`, cost: cost });
-        grandTotal += cost;
-      }
-      if (srvQty > 0) {
-        let cost = srvQty * CPG_PRICES['CD-02'];
-        items.push({ name: `Windows Server Protection (${srvQty})`, cost: cost });
-        grandTotal += cost;
-      }
-
-      // Cloud & Mobile
-      const hasM365 = document.getElementById('hasM365')?.checked;
-      if (hasM365) {
-        let cost = users * CPG_PRICES['CB-01'];
-        items.push({ name: `Microsoft 365 / Cloud Backup (${users} users)`, cost: cost });
-        grandTotal += cost;
-      }
-
-      const hasMobile = document.getElementById('hasMobile')?.checked;
-      const optMobileProt = document.getElementById('optMobileProt')?.checked;
-      if (hasMobile || optMobileProt) {
-        let cost = users * CPG_PRICES['CA-01'];
-        items.push({ name: `CYBER App Mobile Security (${users} users)`, cost: cost });
-        grandTotal += cost;
-      }
-
-      // Sector Specific Backups
-      const optXero = document.getElementById('optXero')?.checked;
-      if (optXero) {
-        let cost = CPG_PRICES['CB-05'];
-        items.push({ name: `Accounting Software Backup (Xero)`, cost: cost });
-        grandTotal += cost;
-      }
-
-      const optEmailProt = document.getElementById('optEmailProt')?.checked;
-      if (optEmailProt) {
-        let cost = users * CPG_PRICES['CD-06'];
-        items.push({ name: `Email Anti-Phishing Defense (${users} users)`, cost: cost });
-        grandTotal += cost;
-      }
-
-      // Security Gap Add-ons
-      if (document.getElementById('optDNS')?.checked) {
-        let cost = users * CPG_PRICES['CD-09'];
-        items.push({ name: `DNS Malicious Website Filtering (${users} users)`, cost: cost });
-        grandTotal += cost;
-      }
-      if (document.getElementById('optRemote')?.checked) {
-        let cost = users * CPG_PRICES['CD-04'];
-        items.push({ name: `Remote Access Protection (${users} users)`, cost: cost });
-        grandTotal += cost;
-      }
-      
-      const optDarkWeb = document.getElementById('optDarkWeb')?.checked;
-      const optDarkWebRetail = document.getElementById('optDarkWebRetail')?.checked;
-      if (optDarkWeb || optDarkWebRetail) {
-        let cost = users * CPG_PRICES['CS-01'];
-        items.push({ name: `Dark Web Credential Monitoring (${users} users)`, cost: cost });
-        grandTotal += cost;
-      }
-      
-      if (document.getElementById('optTraining')?.checked) {
-        let cost = users * CPG_PRICES['CAS-07'];
-        items.push({ name: `Staff Security Awareness Training (${users} users)`, cost: cost });
-        grandTotal += cost;
-      }
-
-      // Render Itemized Breakdown Output
-      let breakdownHtml = '';
-      if (items.length === 0) {
-        breakdownHtml = `<div class="result-item"><span>No products selected</span><span class="price-tag">£0.00</span></div>`;
-      } else {
-        items.forEach(item => {
-          breakdownHtml += `
-            <div class="result-item">
-              <span>${item.name}</span>
-              <span class="price-tag">£${item.cost.toFixed(2)}/mo</span>
-            </div>`;
-        });
-      }
-
-      document.getElementById('quoteBreakdown').innerHTML = breakdownHtml;
-      document.getElementById('grandTotal').innerText = `£${grandTotal.toFixed(2)} / mo`;
-
-      // Advance to final results step
-      goToStep(4);
-    } catch (err) {
-      console.error("Error calculating quote:", err);
-      alert("An error occurred while generating the quote. Please check browser console for details.");
-    }
-  }
-</script>
+<script src="app.js"></script>
 </body>
 </html>
