@@ -517,156 +517,40 @@
 </div>
 
 <script>
-  /* ==========================================================================
-     CPG Products Selling Prices Matrix (Derived from CPG Products Master Tab)
-     ========================================================================== */
-  const CPG_PRICES = {
-    'CD-01': 8.60,   // Windows Endpoint Protection[cite: 2]
-    'CD-02': 8.60,   // Server Endpoint Protection[cite: 2]
-    'CD-03': 8.60,   // Mac Endpoint Protection[cite: 2]
-    'CD-06': 2.10,   // Email Security & Phishing Defense[cite: 2]
-    'CD-09': 1.43,   // DNS Security[cite: 2]
-    'CD-04': 2.50,   // Remote Desktop Protection[cite: 2]
-    'CA-01': 10.00,  // Mobile Protection (iOS/Android)[cite: 2]
-    'CB-01': 2.31,   // M365 / Workspace Backup[cite: 2]
-    'CB-05': 9.80,   // Xero / Accounting Backup[cite: 2]
-    'CB-04': 3.50,   // Salesforce / Cloud Backup
-    'CS-01': 6.15,   // Dark Web Monitoring[cite: 2]
-    'CAS-07': 9.00   // KnowBe4 Security Awareness Training[cite: 2]
-  };
-
-  // Step Navigation Engine
-  function goToStep(stepNum) {
-    document.querySelectorAll('.form-step').forEach(step => step.classList.remove('active'));
-    document.querySelectorAll('.step-indicator').forEach((ind, idx) => {
-      if (idx < stepNum) ind.classList.add('active');
-      else ind.classList.remove('active');
-    });
-    document.getElementById(`step-${stepNum}`).classList.add('active');
+  // Function to handle step transitions with built-in HTML5 validation
+function goToStep(stepNum) {
+  // Validate required inputs on Step 1 before advancing
+  if (stepNum > 1) {
+    const userCountInput = document.getElementById('userCount');
+    if (userCountInput && !userCountInput.checkValidity()) {
+      userCountInput.reportValidity();
+      return; // Stop execution if validation fails
+    }
   }
 
-  // Dynamic Sector Questions Injector
-  function updateSectorQuestions(sector) {
-    const container = document.getElementById('dynamicSectorContainer');
-    let html = '';
+  // Hide all steps
+  const steps = document.querySelectorAll('.form-step');
+  steps.forEach(step => step.classList.remove('active'));
 
-    if (sector === 'accounting') {
-      html = `
-        <label class="checkbox-card">
-          <input type="checkbox" id="optXero" checked>
-          <span class="checkbox-label">Back up cloud accounting platforms like Xero/QuickBooks to prevent financial data loss (£9.80/mo)</span>
-        </label>`;[cite: 1, 2]
-    } else if (sector === 'legal') {
-      html = `
-        <label class="checkbox-card">
-          <input type="checkbox" id="optEmailProt" checked>
-          <span class="checkbox-label">Enhance Business Email Compromise & Impersonation Protection for high-value legal documents (£2.10/user)</span>
-        </label>`;[cite: 1, 2]
-    } else if (sector === 'healthcare') {
-      html = `
-        <label class="checkbox-card">
-          <input type="checkbox" id="optMobileProt" checked>
-          <span class="checkbox-label">Mandatory Mobile Endpoint Protection for clinical staff viewing patient data (£10.00/user)</span>
-        </label>`;[cite: 1, 2]
-    } else if (sector === 'retail') {
-      html = `
-        <label class="checkbox-card">
-          <input type="checkbox" id="optDarkWebRetail" checked>
-          <span class="checkbox-label">Monitor corporate domain & employee credentials for dark web exposure (£6.15/user)</span>
-        </label>`;[cite: 1, 2]
+  // Update Progress Indicators
+  const indicators = document.querySelectorAll('.step-indicator');
+  indicators.forEach((ind, idx) => {
+    if (idx < stepNum) {
+      ind.classList.add('active');
     } else {
-      html = `<p style="color:var(--cpg-text-muted);">No additional sector-specific requirements selected. Standard baseline security options apply.</p>`;
+      ind.classList.remove('active');
     }
+  });
 
-    container.innerHTML = html;
+  // Display Target Step
+  const targetStep = document.getElementById(`step-${stepNum}`);
+  if (targetStep) {
+    targetStep.classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  } else {
+    console.error(`Step element #step-${stepNum} not found in DOM.`);
   }
-
-  // Initial load sector setup
-  updateSectorQuestions('general');
-
-  // Calculation Engine & Itemized Output Generator
-  function generateQuote() {
-    const users = parseInt(document.getElementById('userCount').value) || 1;
-    const winQty = parseInt(document.getElementById('windowsQty').value) || 0;
-    const macQty = parseInt(document.getElementById('macQty').value) || 0;
-    const srvQty = parseInt(document.getElementById('serverQty').value) || 0;
-
-    let items = [];
-    let grandTotal = 0;
-
-    // Endpoints & Servers calculations
-    if (winQty > 0) {
-      let cost = winQty * CPG_PRICES['CD-01'];[cite: 2]
-      items.push({ name: `Windows Endpoints (${winQty})`, cost: cost });
-      grandTotal += cost;
-    }
-    if (macQty > 0) {
-      let cost = macQty * CPG_PRICES['CD-03'];[cite: 2]
-      items.push({ name: `Apple Mac Endpoints (${macQty})`, cost: cost });
-      grandTotal += cost;
-    }
-    if (srvQty > 0) {
-      let cost = srvQty * CPG_PRICES['CD-02'];[cite: 2]
-      items.push({ name: `Windows Server Protection (${srvQty})`, cost: cost });
-      grandTotal += cost;
-    }
-
-    // Core SaaS & Mobile
-    if (document.getElementById('hasM365').checked) {
-      let cost = users * CPG_PRICES['CB-01'];[cite: 2]
-      items.push({ name: `Microsoft 365 / Cloud Backup (${users} users)`, cost: cost });
-      grandTotal += cost;
-    }
-    if (document.getElementById('hasMobile').checked || (document.getElementById('optMobileProt') && document.getElementById('optMobileProt').checked)) {
-      let cost = users * CPG_PRICES['CA-01'];[cite: 2]
-      items.push({ name: `CYBER App Mobile Security (${users} users)`, cost: cost });
-      grandTotal += cost;
-    }
-
-    // Dynamic Sector Items
-    if (document.getElementById('optXero') && document.getElementById('optXero').checked) {
-      let cost = CPG_PRICES['CB-05'];[cite: 2]
-      items.push({ name: `Cloud Accounting Software Backup (Xero)`, cost: cost });
-      grandTotal += cost;
-    }
-
-    // Infrastructure Gap Checks
-    if (document.getElementById('optDNS').checked) {
-      let cost = users * CPG_PRICES['CD-09'];[cite: 2]
-      items.push({ name: `DNS Malicious Website Filtering (${users} users)`, cost: cost });
-      grandTotal += cost;
-    }
-    if (document.getElementById('optRemote').checked) {
-      let cost = users * CPG_PRICES['CD-04'];[cite: 2]
-      items.push({ name: `Remote Access Zero Trust Protection (${users} users)`, cost: cost });
-      grandTotal += cost;
-    }
-    if (document.getElementById('optDarkWeb').checked) {
-      let cost = users * CPG_PRICES['CS-01'];[cite: 2]
-      items.push({ name: `Dark Web Credential Monitoring (${users} users)`, cost: cost });
-      grandTotal += cost;
-    }
-    if (document.getElementById('optTraining').checked) {
-      let cost = users * CPG_PRICES['CAS-07'];[cite: 2]
-      items.push({ name: `Staff Phishing & Awareness Training (${users} users)`, cost: cost });
-      grandTotal += cost;
-    }
-
-    // Render Results HTML
-    let breakdownHtml = '';
-    items.forEach(item => {
-      breakdownHtml += `
-        <div class="result-item">
-          <span>${item.name}</span>
-          <span class="price-tag">£${item.cost.toFixed(2)}/mo</span>
-        </div>`;
-    });
-
-    document.getElementById('quoteBreakdown').innerHTML = breakdownHtml;
-    document.getElementById('grandTotal').innerText = `£${grandTotal.toFixed(2)} / mo`;
-
-    goToStep(4);
-  }
+}
 </script>
 </body>
 </html>
