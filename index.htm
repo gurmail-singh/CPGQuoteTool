@@ -1,0 +1,69 @@
+<form id="cpg-quote-tool" class="quote-form">
+  <!-- Step 1: Baseline Environment Profiling -->
+  <fieldset class="form-step active" id="step-1">
+    <legend>1. Infrastructure & Workforce Profile</legend>
+    
+    <label for="user-count">Total Staff / User Licenses Required:</label>
+    <input type="number" id="user-count" name="userCount" min="1" max="300" value="10" required>
+
+    <div class="endpoint-group">
+      <h4>Device Quantities</h4>
+      <label>Windows Laptops/PCs: <input type="number" name="qty_CD01" value="10"></label>
+      <label>Apple Macs: <input type="number" name="qty_CD03" value="0"></label>
+      <label>Windows Servers: <input type="number" name="qty_CD02" value="1"></label>
+    </div>
+
+    <div class="saas-group">
+      <h4>Cloud & Productivity Platforms</h4>
+      <label><input type="checkbox" name="has_CB01" checked> Microsoft 365 / Google Workspace</label>
+      <label><input type="checkbox" name="has_CB04"> Salesforce</label>
+      <label><input type="checkbox" name="has_CA01" checked> Staff use Mobile Phones for work email/apps</label>
+    </div>
+    
+    <button type="button" onclick="nextStep(2)">Next: Sector Risk Profile</button>
+  </fieldset>
+
+  <!-- Step 2: Dynamic Sector-Specific Questions -->
+  <fieldset class="form-step" id="step-2">
+    <legend>2. Sector & Operational Risk</legend>
+    
+    <label for="industry-select">Select Industry Sector:</label>
+    <select id="industry-select" name="industry" onchange="renderSectorQuestions(this.value)">
+      <option value="">-- Choose Sector --</option>
+      <option value="accounting">Accountants & Financial Services</option>
+      <option value="legal">Solicitors & Legal</option>
+      <option value="healthcare">Healthcare & Dentists</option>
+      <option value="retail">Retail & E-Commerce</option>
+      <option value="manufacturing">Manufacturing & Utilities</option>
+      <option value="education">Education & Public Sector</option>
+    </select>
+
+    <div id="dynamic-sector-container">
+      <!-- Injected dynamically via JS based on selected industry -->
+    </div>
+
+    <button type="button" onclick="nextStep(3)">Next: Infrastructure Gaps</button>
+  </fieldset>
+
+  <!-- Step 3: Infrastructure Gap Checklist -->
+  <fieldset class="form-step" id="step-3">
+    <legend>3. Security & Infrastructure Options</legend>
+    
+    <label><input type="checkbox" name="has_CD09" checked> Block malicious websites at DNS level (DNS Security)</label>
+    <label><input type="checkbox" name="has_CD04"> Secure remote connections for remote staff (Remote Desktop/Zero Trust)</label>
+    <label><input type="checkbox" name="has_CS01" checked> Monitor dark web for leaked employee passwords</label>
+    <label><input type="checkbox" name="has_CAS07"> Staff Security Awareness & Phishing Training</label>
+
+    <button type="button" onclick="generateQuote()">Calculate Quote</button>
+  </fieldset>
+</form>
+
+<!-- Results Panel -->
+<div id="quote-results" class="results-panel" style="display:none;">
+  <h3>Recommended Cyber Security Quote Breakdown</h3>
+  <div id="itemized-list"></div>
+  <div class="pricing-totals">
+    <p><strong>Custom Package Total:</strong> <span id="custom-total">£0.00</span> / month</p>
+    <p><strong>Bundled Gold Package Equivalent:</strong> <span id="bundle-total">£0.00</span> / month</p>
+  </div>
+</div>
