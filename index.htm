@@ -446,19 +446,19 @@
 </div>
 
 <script>
-  // CPG Products Selling Prices Matrix (Master Tab Data)[cite: 1, 2]
+  // CPG Products Selling Prices Matrix (Master Tab Data)
   const CPG_PRICES = {
-    'CD-01': 8.60,   // Windows Endpoint Protection[cite: 2]
-    'CD-02': 8.60,   // Server Endpoint Protection[cite: 2]
-    'CD-03': 8.60,   // Mac Endpoint Protection[cite: 2]
-    'CD-06': 2.10,   // Email Security & Phishing Defense[cite: 2]
-    'CD-09': 1.43,   // DNS Security[cite: 2]
-    'CD-04': 2.50,   // Remote Desktop Protection[cite: 2]
-    'CA-01': 10.00,  // Mobile Protection (iOS/Android)[cite: 2]
-    'CB-01': 2.31,   // M365 / Workspace Backup[cite: 2]
-    'CB-05': 9.80,   // Xero / Accounting Backup[cite: 2]
-    'CS-01': 6.15,   // Dark Web Monitoring[cite: 2]
-    'CAS-07': 9.00   // Security Awareness Training[cite: 2]
+    'CD-01': 8.60,   // Windows Endpoint Protection
+    'CD-02': 8.60,   // Server Endpoint Protection
+    'CD-03': 8.60,   // Mac Endpoint Protection
+    'CD-06': 2.10,   // Email Security & Phishing Defense
+    'CD-09': 1.43,   // DNS Security
+    'CD-04': 2.50,   // Remote Desktop Protection
+    'CA-01': 10.00,  // Mobile Protection (iOS/Android)
+    'CB-01': 2.31,   // M365 / Workspace Backup
+    'CB-05': 9.80,   // Xero / Accounting Backup
+    'CS-01': 6.15,   // Dark Web Monitoring
+    'CAS-07': 9.00   // Security Awareness Training
   };
 
   // Unified Step Navigation Function
@@ -486,12 +486,15 @@
     const target = document.getElementById(`step-${stepNum}`);
     if (target) {
       target.classList.add('active');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   }
 
   // Inject Sector-Specific Options
   function updateSectorQuestions(sector) {
     const container = document.getElementById('dynamicSectorContainer');
+    if (!container) return;
+    
     let html = '';
 
     if (sector === 'accounting') {
@@ -499,25 +502,25 @@
         <label class="checkbox-card">
           <input type="checkbox" id="optXero" checked>
           <span class="checkbox-label">Back up cloud accounting platforms like Xero/QuickBooks (£9.80/mo)</span>
-        </label>`;[cite: 1, 2]
+        </label>`;
     } else if (sector === 'legal') {
       html = `
         <label class="checkbox-card">
           <input type="checkbox" id="optEmailProt" checked>
           <span class="checkbox-label">Enhance Email Anti-Phishing & Document Protection (£2.10/user)</span>
-        </label>`;[cite: 1, 2]
+        </label>`;
     } else if (sector === 'healthcare') {
       html = `
         <label class="checkbox-card">
           <input type="checkbox" id="optMobileProt" checked>
           <span class="checkbox-label">Mandatory Mobile Endpoint Protection for clinical devices (£10.00/user)</span>
-        </label>`;[cite: 1, 2]
+        </label>`;
     } else if (sector === 'retail') {
       html = `
         <label class="checkbox-card">
           <input type="checkbox" id="optDarkWebRetail" checked>
           <span class="checkbox-label">Monitor store logins & employee credentials on dark web (£6.15/user)</span>
-        </label>`;[cite: 1, 2]
+        </label>`;
     } else {
       html = `<p style="color:var(--cpg-text-muted); font-size:0.85rem;">Standard baseline security options apply.</p>`;
     }
@@ -526,85 +529,118 @@
   }
 
   // Initialize Default Sector
-  updateSectorQuestions('general');
+  document.addEventListener('DOMContentLoaded', () => {
+    updateSectorQuestions('general');
+  });
 
   // Calculate Product Quote
   function generateQuote() {
-    const users = parseInt(document.getElementById('userCount').value) || 1;
-    const winQty = parseInt(document.getElementById('windowsQty').value) || 0;
-    const macQty = parseInt(document.getElementById('macQty').value) || 0;
-    const srvQty = parseInt(document.getElementById('serverQty').value) || 0;
+    try {
+      const users = Math.max(1, parseInt(document.getElementById('userCount')?.value) || 1);
+      const winQty = Math.max(0, parseInt(document.getElementById('windowsQty')?.value) || 0);
+      const macQty = Math.max(0, parseInt(document.getElementById('macQty')?.value) || 0);
+      const srvQty = Math.max(0, parseInt(document.getElementById('serverQty')?.value) || 0);
 
-    let items = [];
-    let grandTotal = 0;
+      let items = [];
+      let grandTotal = 0;
 
-    if (winQty > 0) {
-      let cost = winQty * CPG_PRICES['CD-01'];[cite: 2]
-      items.push({ name: `Windows Endpoints (${winQty})`, cost: cost });
-      grandTotal += cost;
-    }
-    if (macQty > 0) {
-      let cost = macQty * CPG_PRICES['CD-03'];[cite: 2]
-      items.push({ name: `Apple Mac Endpoints (${macQty})`, cost: cost });
-      grandTotal += cost;
-    }
-    if (srvQty > 0) {
-      let cost = srvQty * CPG_PRICES['CD-02'];[cite: 2]
-      items.push({ name: `Windows Server Protection (${srvQty})`, cost: cost });
-      grandTotal += cost;
-    }
+      // Endpoint protection calculations
+      if (winQty > 0) {
+        let cost = winQty * CPG_PRICES['CD-01'];
+        items.push({ name: `Windows Endpoints (${winQty})`, cost: cost });
+        grandTotal += cost;
+      }
+      if (macQty > 0) {
+        let cost = macQty * CPG_PRICES['CD-03'];
+        items.push({ name: `Apple Mac Endpoints (${macQty})`, cost: cost });
+        grandTotal += cost;
+      }
+      if (srvQty > 0) {
+        let cost = srvQty * CPG_PRICES['CD-02'];
+        items.push({ name: `Windows Server Protection (${srvQty})`, cost: cost });
+        grandTotal += cost;
+      }
 
-    if (document.getElementById('hasM365').checked) {
-      let cost = users * CPG_PRICES['CB-01'];[cite: 2]
-      items.push({ name: `Microsoft 365 / Cloud Backup (${users} users)`, cost: cost });
-      grandTotal += cost;
-    }
-    if (document.getElementById('hasMobile').checked || (document.getElementById('optMobileProt') && document.getElementById('optMobileProt').checked)) {
-      let cost = users * CPG_PRICES['CA-01'];[cite: 2]
-      items.push({ name: `CYBER App Mobile Security (${users} users)`, cost: cost });
-      grandTotal += cost;
-    }
+      // Cloud & Mobile
+      const hasM365 = document.getElementById('hasM365')?.checked;
+      if (hasM365) {
+        let cost = users * CPG_PRICES['CB-01'];
+        items.push({ name: `Microsoft 365 / Cloud Backup (${users} users)`, cost: cost });
+        grandTotal += cost;
+      }
 
-    if (document.getElementById('optXero') && document.getElementById('optXero').checked) {
-      let cost = CPG_PRICES['CB-05'];[cite: 2]
-      items.push({ name: `Accounting Software Backup (Xero)`, cost: cost });
-      grandTotal += cost;
-    }
+      const hasMobile = document.getElementById('hasMobile')?.checked;
+      const optMobileProt = document.getElementById('optMobileProt')?.checked;
+      if (hasMobile || optMobileProt) {
+        let cost = users * CPG_PRICES['CA-01'];
+        items.push({ name: `CYBER App Mobile Security (${users} users)`, cost: cost });
+        grandTotal += cost;
+      }
 
-    if (document.getElementById('optDNS').checked) {
-      let cost = users * CPG_PRICES['CD-09'];[cite: 2]
-      items.push({ name: `DNS Malicious Website Filtering (${users} users)`, cost: cost });
-      grandTotal += cost;
-    }
-    if (document.getElementById('optRemote').checked) {
-      let cost = users * CPG_PRICES['CD-04'];[cite: 2]
-      items.push({ name: `Remote Access Protection (${users} users)`, cost: cost });
-      grandTotal += cost;
-    }
-    if (document.getElementById('optDarkWeb').checked) {
-      let cost = users * CPG_PRICES['CS-01'];[cite: 2]
-      items.push({ name: `Dark Web Credential Monitoring (${users} users)`, cost: cost });
-      grandTotal += cost;
-    }
-    if (document.getElementById('optTraining').checked) {
-      let cost = users * CPG_PRICES['CAS-07'];[cite: 2]
-      items.push({ name: `Staff Security Awareness Training (${users} users)`, cost: cost });
-      grandTotal += cost;
-    }
+      // Sector Specific Backups
+      const optXero = document.getElementById('optXero')?.checked;
+      if (optXero) {
+        let cost = CPG_PRICES['CB-05'];
+        items.push({ name: `Accounting Software Backup (Xero)`, cost: cost });
+        grandTotal += cost;
+      }
 
-    let breakdownHtml = '';
-    items.forEach(item => {
-      breakdownHtml += `
-        <div class="result-item">
-          <span>${item.name}</span>
-          <span class="price-tag">£${item.cost.toFixed(2)}/mo</span>
-        </div>`;
-    });
+      const optEmailProt = document.getElementById('optEmailProt')?.checked;
+      if (optEmailProt) {
+        let cost = users * CPG_PRICES['CD-06'];
+        items.push({ name: `Email Anti-Phishing Defense (${users} users)`, cost: cost });
+        grandTotal += cost;
+      }
 
-    document.getElementById('quoteBreakdown').innerHTML = breakdownHtml;
-    document.getElementById('grandTotal').innerText = `£${grandTotal.toFixed(2)} / mo`;
+      // Security Gap Add-ons
+      if (document.getElementById('optDNS')?.checked) {
+        let cost = users * CPG_PRICES['CD-09'];
+        items.push({ name: `DNS Malicious Website Filtering (${users} users)`, cost: cost });
+        grandTotal += cost;
+      }
+      if (document.getElementById('optRemote')?.checked) {
+        let cost = users * CPG_PRICES['CD-04'];
+        items.push({ name: `Remote Access Protection (${users} users)`, cost: cost });
+        grandTotal += cost;
+      }
+      
+      const optDarkWeb = document.getElementById('optDarkWeb')?.checked;
+      const optDarkWebRetail = document.getElementById('optDarkWebRetail')?.checked;
+      if (optDarkWeb || optDarkWebRetail) {
+        let cost = users * CPG_PRICES['CS-01'];
+        items.push({ name: `Dark Web Credential Monitoring (${users} users)`, cost: cost });
+        grandTotal += cost;
+      }
+      
+      if (document.getElementById('optTraining')?.checked) {
+        let cost = users * CPG_PRICES['CAS-07'];
+        items.push({ name: `Staff Security Awareness Training (${users} users)`, cost: cost });
+        grandTotal += cost;
+      }
 
-    goToStep(4);
+      // Render Itemized Breakdown Output
+      let breakdownHtml = '';
+      if (items.length === 0) {
+        breakdownHtml = `<div class="result-item"><span>No products selected</span><span class="price-tag">£0.00</span></div>`;
+      } else {
+        items.forEach(item => {
+          breakdownHtml += `
+            <div class="result-item">
+              <span>${item.name}</span>
+              <span class="price-tag">£${item.cost.toFixed(2)}/mo</span>
+            </div>`;
+        });
+      }
+
+      document.getElementById('quoteBreakdown').innerHTML = breakdownHtml;
+      document.getElementById('grandTotal').innerText = `£${grandTotal.toFixed(2)} / mo`;
+
+      // Advance to final results step
+      goToStep(4);
+    } catch (err) {
+      console.error("Error calculating quote:", err);
+      alert("An error occurred while generating the quote. Please check browser console for details.");
+    }
   }
 </script>
 </body>
