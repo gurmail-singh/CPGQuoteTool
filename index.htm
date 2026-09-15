@@ -21,7 +21,7 @@
     body { background: var(--cpg-dark-blue); color: var(--cpg-text); padding: 20px; min-height: 100vh; }
 
     .quote-app-container {
-      max-width: 1050px;
+      max-width: 1100px;
       margin: 0 auto;
       background: var(--cpg-card-bg);
       border: 1px solid var(--cpg-border);
@@ -33,7 +33,7 @@
       overflow: hidden;
     }
 
-    /* Progress Indicator */
+    /* Clickable Progress Indicator Menu */
     .step-indicator {
       display: flex;
       justify-content: space-between;
@@ -41,21 +41,30 @@
       border-bottom: 1px solid var(--cpg-border);
       padding-bottom: 15px;
       overflow-x: auto;
+      gap: 8px;
     }
     .step-dot {
       color: var(--cpg-text-muted);
-      font-size: 0.85rem;
+      font-size: 0.82rem;
       font-weight: 600;
       text-transform: uppercase;
-      padding: 6px 12px;
+      padding: 8px 14px;
       border-radius: 20px;
       transition: all 0.3s ease;
       white-space: nowrap;
+      cursor: pointer;
+      border: 1px solid transparent;
+      user-select: none;
+    }
+    .step-dot:hover {
+      color: var(--cpg-text);
+      border-color: var(--cpg-border);
+      background: rgba(255, 255, 255, 0.05);
     }
     .step-dot.active {
       color: var(--cpg-accent);
       background: rgba(100, 255, 218, 0.1);
-      border: 1px solid var(--cpg-accent);
+      border-color: var(--cpg-accent);
     }
 
     /* Animated Form Pages */
@@ -63,7 +72,7 @@
       display: none;
       opacity: 0;
       transform: translateX(20px);
-      transition: opacity 0.4s ease, transform 0.4s ease;
+      transition: opacity 0.35s ease, transform 0.35s ease;
     }
     .form-page.active-page {
       display: block;
@@ -87,13 +96,14 @@
       color: var(--cpg-blue);
       padding: 12px;
       text-align: left;
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       border-bottom: 2px solid var(--cpg-border);
     }
     .product-table td {
       padding: 12px;
       border-bottom: 1px solid var(--cpg-border);
-      font-size: 0.9rem;
+      font-size: 0.88rem;
+      vertical-align: middle;
     }
     .product-name-hover {
       cursor: help;
@@ -102,7 +112,13 @@
       border-bottom: 1px dashed var(--cpg-blue);
     }
 
-    /* Inputs & Form Fields */
+    /* Checkboxes & Inputs */
+    input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--cpg-accent);
+      cursor: pointer;
+    }
     input[type="number"], input[type="text"], input[type="tel"] {
       background: #0a192f;
       border: 1px solid var(--cpg-border);
@@ -128,9 +144,9 @@
       margin-bottom: 20px;
     }
     .radio-group { display: flex; gap: 15px; flex-wrap: wrap; margin-top: 8px; }
-    .radio-group label { cursor: pointer; font-size: 0.9rem; }
+    .radio-group label { cursor: pointer; font-size: 0.9rem; display: flex; align-items: center; gap: 6px; }
 
-    /* Buttons & Interactions */
+    /* Buttons & Controls */
     .nav-buttons { display: flex; justify-content: space-between; margin-top: 25px; gap: 10px; }
     button {
       padding: 10px 22px;
@@ -147,10 +163,10 @@
     .btn-next:hover, .btn-submit:hover { background: var(--cpg-accent); transform: translateY(-2px); }
     .btn-prev { background: #233554; color: var(--cpg-text); }
     .btn-prev:hover { background: #112240; }
-    .btn-test { background: #ffb703; color: #000; font-weight: 700; }
+    .btn-test { background: #ffb703; color: #000; font-weight: 700; margin-bottom: 15px; }
     .btn-test:hover { background: #ffa200; transform: translateY(-2px); }
 
-    /* Summary Totals */
+    /* Summary Formatting */
     .summary-totals { text-align: right; background: #112240; padding: 15px; border-radius: 8px; margin-top: 15px; }
     .summary-totals p { margin: 5px 0; font-size: 1rem; }
     .summary-totals strong { color: var(--cpg-accent); }
@@ -164,38 +180,16 @@
 <body>
 
 <div class="quote-app-container">
+  <!-- Clickable Top Menu -->
   <div id="step-indicator" class="step-indicator"></div>
 
   <form id="cpg-multi-page-form" onsubmit="event.preventDefault();">
-    
-    <!-- DYNAMIC PRODUCT CATEGORY PAGES (Injected by JS) -->
-    <div id="dynamic-category-pages"></div>
 
-    <!-- SUMMARY & GLOBAL DISCOUNT PAGE -->
-    <div class="form-page" id="page-summary">
-      <h2>Selection Summary</h2>
-      <div id="summary-table-container"></div>
+    <!-- PAGE 1: Customer Details (Moved back to the front) -->
+    <div class="form-page active-page" id="page-customer-details">
+      <h2>1. Customer Details</h2>
       
-      <div id="global-discount-container" class="discount-box" style="display:none;">
-        <p><strong>Apply Global Discount to All Products:</strong></p>
-        <div class="radio-group">
-          ${[0, 10, 20, 25, 30, 40, 50].map(val => `
-            <label><input type="radio" name="global_discount" value="${val}" ${val===0?'checked':''} onclick="buildSummaryTable()"> ${val}%</label>
-          `).join('')}
-        </div>
-      </div>
-
-      <div class="nav-buttons">
-        <button type="button" class="btn-prev" onclick="prevPage()">&larr; Back</button>
-        <button type="button" class="btn-next" onclick="nextPage()">Next: Customer Info &rarr;</button>
-      </div>
-    </div>
-
-    <!-- LAST PAGE: Customer Details & PDF Export -->
-    <div class="form-page" id="page-customer-details">
-      <h2>Customer Details & Generate Quote</h2>
-      
-      <div style="margin-bottom: 15px;">
+      <div>
         <button type="button" class="btn-test" onclick="populateTestData()">⚡ Test Data</button>
       </div>
 
@@ -212,16 +206,41 @@
       </div>
 
       <div class="nav-buttons">
+        <div></div>
+        <button type="button" class="btn-next" onclick="nextPage()">Next: Select Products &rarr;</button>
+      </div>
+    </div>
+    
+    <!-- DYNAMIC PRODUCT CATEGORY PAGES (Injected by JS) -->
+    <div id="dynamic-category-pages"></div>
+
+    <!-- FINAL PAGE: Summary & PDF Export -->
+    <div class="form-page" id="page-summary">
+      <h2>Selection Summary</h2>
+      <div id="summary-table-container"></div>
+      
+      <div id="global-discount-container" class="discount-box" style="display:none;">
+        <p><strong>Apply Global Discount to All Products:</strong></p>
+        <div class="radio-group">
+          ${[0, 10, 20, 25, 30, 40, 50].map(val => `
+            <label><input type="radio" name="global_discount" value="${val}" ${val===0?'checked':''} onclick="buildSummaryTable()"> ${val}%</label>
+          `).join('')}
+        </div>
+      </div>
+
+      <div class="nav-buttons">
         <button type="button" class="btn-prev" onclick="prevPage()">&larr; Back</button>
-        <button type="button" class="btn-next" onclick="previewPDF()">Preview Quote</button>
-        <button type="button" class="btn-submit" onclick="downloadPDF()">Download PDF Quote</button>
+        <div>
+          <button type="button" class="btn-next" onclick="previewPDF()">Preview Quote</button>
+          <button type="button" class="btn-submit" onclick="downloadPDF()">Download PDF Quote</button>
+        </div>
       </div>
     </div>
 
   </form>
 </div>
 
-<!-- Modal for Preview -->
+<!-- Modal for PDF Preview -->
 <div id="pdf-modal" class="modal">
   <div class="modal-content">
     <span class="close-btn" onclick="closeModal()">&times;</span>
@@ -230,7 +249,7 @@
 </div>
 
 <script>
-// Data structure sourced from Master Tab (Columns A to M)
+// Catalog products sourced from Master Tab (Columns A to M)
 const cpgMasterProducts = [
   { category: "CYBER App", class: "Apple Mobile Protection", supplier: "Cynet", code: "CA-01", buyPrice: 3.16, sellPrice: 10.00, colK: "Mobile Phone Scan & Threat Detection", colL: "Proactive threat hunting & incident response", colM: "Stops infection on employee mobile devices" },
   { category: "CYBER App", class: "Android Mobile Protection", supplier: "Cynet", code: "CA-02", buyPrice: 3.16, sellPrice: 10.00, colK: "Mobile App Risk Detection", colL: "On-Device Remediation", colM: "Continuous mobile security" },
@@ -258,12 +277,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
 function renderStepIndicators() {
   const container = document.getElementById("step-indicator");
-  let html = "";
+  let html = `<div class="step-dot" id="dot-0" onclick="navigateToPage(0)">Customer Details</div>`;
   categories.forEach((cat, i) => {
-    html += `<div class="step-dot" id="dot-${i}">${cat}</div>`;
+    html += `<div class="step-dot" id="dot-${i + 1}" onclick="navigateToPage(${i + 1})">${cat}</div>`;
   });
-  html += `<div class="step-dot" id="dot-${categories.length}">Summary</div>`;
-  html += `<div class="step-dot" id="dot-${categories.length + 1}">Customer Details</div>`;
+  html += `<div class="step-dot" id="dot-${categories.length + 1}" onclick="navigateToPage(${categories.length + 1})">Summary</div>`;
   container.innerHTML = html;
 }
 
@@ -282,12 +300,13 @@ function renderCategoryPages() {
     html += `<table class="product-table">
       <thead>
         <tr>
+          <th style="width: 40px;">Select</th>
           <th>Protection Classification</th>
           <th>Product Code</th>
           <th>Supplier</th>
           <th>CPG Buy Price</th>
           <th>CPG Sell Price (£)</th>
-          <th>Qty</th>
+          <th style="width: 80px;">Qty</th>
         </tr>
       </thead>
       <tbody>`;
@@ -296,6 +315,9 @@ function renderCategoryPages() {
       const tooltip = `${prod.colK} | ${prod.colL} | ${prod.colM}`;
       html += `
         <tr>
+          <td style="text-align: center;">
+            <input type="checkbox" id="chk_${prod.code}" onchange="handleCheckboxToggle('${prod.code}')">
+          </td>
           <td>
             <span class="product-name-hover" title="${tooltip}">${prod.class} ℹ️</span>
           </td>
@@ -309,14 +331,14 @@ function renderCategoryPages() {
                    onchange="validateCustomPrice(this)">
           </td>
           <td>
-            <input type="number" min="0" value="0" id="qty_${prod.code}" style="width: 70px;">
+            <input type="number" min="0" value="0" id="qty_${prod.code}" oninput="handleQuantityInput('${prod.code}')">
           </td>
         </tr>`;
     });
 
     html += `</tbody></table>`;
 
-    // Page Level Discount
+    // Page Level Discount Options
     html += `
       <div class="discount-box">
         <p><strong>Page Discount (${catName}):</strong></p>
@@ -330,10 +352,10 @@ function renderCategoryPages() {
         </div>
       </div>`;
 
-    // Navigation Buttons
+    // Navigation Controls
     html += `
       <div class="nav-buttons">
-        ${idx > 0 ? `<button type="button" class="btn-prev" onclick="prevPage()">&larr; Back</button>` : `<div></div>`}
+        <button type="button" class="btn-prev" onclick="prevPage()">&larr; Back</button>
         <button type="button" class="btn-next" onclick="nextPage()">Next &rarr;</button>
       </div>`;
 
@@ -342,17 +364,64 @@ function renderCategoryPages() {
   });
 }
 
+// Checkbox and Quantity Synchronization
+function handleQuantityInput(code) {
+  const qtyInput = document.getElementById(`qty_${code}`);
+  const chkInput = document.getElementById(`chk_${code}`);
+  const qty = parseInt(qtyInput.value) || 0;
+
+  // Auto tick checkbox if quantity > 0
+  chkInput.checked = qty > 0;
+}
+
+function handleCheckboxToggle(code) {
+  const qtyInput = document.getElementById(`qty_${code}`);
+  const chkInput = document.getElementById(`chk_${code}`);
+
+  // Default quantity to 1 when manually checked, or 0 when unchecked
+  if (chkInput.checked && (parseInt(qtyInput.value) || 0) === 0) {
+    qtyInput.value = 1;
+  } else if (!chkInput.checked) {
+    qtyInput.value = 0;
+  }
+}
+
+// Page Discount Logic & Sell Price Adjustment for Ticked Items
+function setPageDiscount(category, percentage) {
+  pageDiscounts[category] = percentage;
+
+  const catProducts = cpgMasterProducts.filter(p => p.category === category);
+  catProducts.forEach(prod => {
+    const chkInput = document.getElementById(`chk_${prod.code}`);
+    const priceInput = document.getElementById(`price_${prod.code}`);
+
+    if (chkInput && priceInput) {
+      const origPrice = parseFloat(priceInput.dataset.origPrice);
+      if (chkInput.checked && percentage > 0) {
+        // Adjust CPG Sell Price directly by discount percentage
+        const discountedPrice = origPrice * (1 - (percentage / 100));
+        priceInput.value = discountedPrice.toFixed(2);
+      } else {
+        // Reset to original price
+        priceInput.value = origPrice.toFixed(2);
+      }
+    }
+  });
+}
+
 function validateCustomPrice(input) {
   const origPrice = parseFloat(input.dataset.origPrice);
   const newPrice = parseFloat(input.value);
   if (newPrice < origPrice * 0.5) {
-    alert("Warning: Discount cannot exceed 50% of original price.");
+    alert("Warning: Custom price discount cannot exceed 50% of original price.");
     input.value = origPrice.toFixed(2);
   }
 }
 
-function setPageDiscount(category, percentage) {
-  pageDiscounts[category] = percentage;
+// Menu Navigation
+function navigateToPage(pageIdx) {
+  currentPageIndex = pageIdx;
+  updatePageVisibility();
 }
 
 function updatePageVisibility() {
@@ -365,7 +434,7 @@ function updatePageVisibility() {
     dot.classList.toggle("active", idx === currentPageIndex);
   });
 
-  if (currentPageIndex === categories.length) {
+  if (currentPageIndex === categories.length + 1) {
     buildSummaryTable();
   }
 }
@@ -387,9 +456,11 @@ function prevPage() {
 function getSelectedProducts() {
   const selected = [];
   cpgMasterProducts.forEach(prod => {
+    const chkInput = document.getElementById(`chk_${prod.code}`);
     const qtyInput = document.getElementById(`qty_${prod.code}`);
     const priceInput = document.getElementById(`price_${prod.code}`);
-    if (qtyInput && priceInput) {
+
+    if (chkInput && qtyInput && priceInput && chkInput.checked) {
       const qty = parseInt(qtyInput.value) || 0;
       const unitPrice = parseFloat(priceInput.value) || 0;
       if (qty > 0) {
@@ -416,7 +487,7 @@ function buildSummaryTable() {
   globalDiscountContainer.style.display = hasPageDiscounts ? "none" : "block";
 
   if (selectedItems.length === 0) {
-    summaryContainer.innerHTML = "<p>No products selected. Please go back and enter product quantities.</p>";
+    summaryContainer.innerHTML = "<p>No products selected. Please select items and set quantities.</p>";
     return;
   }
 
@@ -428,22 +499,22 @@ function buildSummaryTable() {
           <th>Classification</th>
           <th>Code</th>
           <th>Qty</th>
-          <th>Unit Price</th>
-          <th>Discount</th>
-          <th>Total</th>
+          <th>Unit Price (£)</th>
+          <th>Total (£)</th>
         </tr>
       </thead>
       <tbody>`;
 
   selectedItems.forEach(item => {
-    let discount = pageDiscounts[item.category] || 0;
+    let effectiveUnitPrice = item.unitPrice;
+
     if (!hasPageDiscounts) {
       const globalRadio = document.querySelector('input[name="global_discount"]:checked');
-      if (globalRadio) discount = parseFloat(globalRadio.value);
+      const globalDiscount = globalRadio ? parseFloat(globalRadio.value) : 0;
+      effectiveUnitPrice = item.unitPrice * (1 - (globalDiscount / 100));
     }
 
-    const finalUnitPrice = item.unitPrice * (1 - (discount / 100));
-    const lineTotal = item.qty * finalUnitPrice;
+    const lineTotal = item.qty * effectiveUnitPrice;
     subtotal += lineTotal;
 
     html += `
@@ -451,8 +522,7 @@ function buildSummaryTable() {
         <td>${item.class}</td>
         <td>${item.code}</td>
         <td>${item.qty}</td>
-        <td>£${item.unitPrice.toFixed(2)}</td>
-        <td>${discount}%</td>
+        <td>£${effectiveUnitPrice.toFixed(2)}</td>
         <td>£${lineTotal.toFixed(2)}</td>
       </tr>`;
   });
@@ -470,7 +540,6 @@ function buildSummaryTable() {
   summaryContainer.innerHTML = html;
 }
 
-// Populate Example Data Button Functionality
 function populateTestData() {
   document.getElementById("cust-company-name").value = "South Essex Sealed Units LTD";
   document.getElementById("cust-attention").value = "Carl Hicks";
@@ -490,7 +559,7 @@ function generatePDFContent() {
   const addr2 = document.getElementById("cust-addr2").value || "";
   const city = document.getElementById("cust-city").value || "";
   const postcode = document.getElementById("cust-postcode").value || "";
-  const quoteNo = document.getElementById("quote-number").value || "QU-1000";
+  const quoteNo = document.getElementById("quote-number").value || "QU-1006";
   const quoteRef = document.getElementById("quote-ref").value || "";
 
   const selectedItems = getSelectedProducts();
@@ -502,8 +571,11 @@ function generatePDFContent() {
   let rowsHtml = "";
 
   selectedItems.forEach(item => {
-    let discount = pageDiscounts[item.category] || globalDiscount;
-    let finalUnitPrice = item.unitPrice * (1 - (discount / 100));
+    let finalUnitPrice = item.unitPrice;
+    if (!hasPageDiscounts && globalDiscount > 0) {
+      finalUnitPrice = item.unitPrice * (1 - (globalDiscount / 100));
+    }
+
     let amount = item.qty * finalUnitPrice;
     subtotal += amount;
 
