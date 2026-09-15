@@ -438,8 +438,7 @@
       const chk = document.getElementById(`chk-${code}`);
       if (chk) chk.checked = true;
     }
-    
-    // Refresh table row displays for current category discount application
+
     const item = cpgProductCatalog.find(p => p.code === code);
     if (item) applyPageDiscount(item.category, pageDiscounts[item.category] || 0);
   }
@@ -449,14 +448,12 @@
     if (!productSelections[code].isAvailable) return;
     productSelections[code].selected = isChecked;
     
-    // Auto-assign quantity to 1 if ticked with 0 quantity
     if (isChecked && productSelections[code].qty === 0) {
       productSelections[code].qty = 1;
       const qtyInput = document.getElementById(`qty-${code}`);
       if (qtyInput) qtyInput.value = 1;
     }
 
-    // Refresh table row displays for current category discount application
     const item = cpgProductCatalog.find(p => p.code === code);
     if (item) applyPageDiscount(item.category, pageDiscounts[item.category] || 0);
   }
@@ -505,7 +502,6 @@
 
       if (hasDiscount) {
         if (isTicked) {
-          // Apply discount strictly to ticked items
           const discounted = item.sellPrice * (1 - pct / 100);
           productSelections[item.code].customSellPrice = discounted;
 
@@ -523,7 +519,6 @@
             discCell.innerText = `£${discounted.toFixed(2)}`;
           }
         } else {
-          // Item is NOT ticked: Retain base sell price and render empty cell in discount column
           productSelections[item.code].customSellPrice = item.sellPrice;
 
           if (priceCell) priceCell.innerText = `£${item.sellPrice.toFixed(2)}`;
@@ -543,7 +538,6 @@
           }
         }
       } else {
-        // Restore standard non-discounted display state
         productSelections[item.code].customSellPrice = item.sellPrice;
         if (priceCell) priceCell.innerText = `£${item.sellPrice.toFixed(2)}`;
         if (discCell) discCell.remove();
