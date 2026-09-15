@@ -1,290 +1,3 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CPG Quote Generator</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-  <style>
-    :root {
-      --cpg-navy: #0a192f;
-      --cpg-blue: #00bcd4;
-      --cpg-dark-blue: #020c1b;
-      --cpg-card-bg: rgba(16, 30, 54, 0.85);
-      --cpg-border: #233554;
-      --cpg-text: #e6f1ff;
-      --cpg-text-muted: #8892b0;
-      --cpg-accent: #64ffda;
-    }
-
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
-    body { background: var(--cpg-dark-blue); color: var(--cpg-text); padding: 20px; min-height: 100vh; }
-
-    .quote-app-container {
-      max-width: 1100px;
-      margin: 0 auto;
-      background: var(--cpg-card-bg);
-      border: 1px solid var(--cpg-border);
-      border-radius: 12px;
-      padding: 30px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-      backdrop-filter: blur(10px);
-      position: relative;
-      overflow: hidden;
-    }
-
-    /* Clickable Progress Indicator Menu */
-    .step-indicator {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 25px;
-      border-bottom: 1px solid var(--cpg-border);
-      padding-bottom: 15px;
-      overflow-x: auto;
-      gap: 8px;
-    }
-    .step-dot {
-      color: var(--cpg-text-muted);
-      font-size: 0.82rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      padding: 8px 14px;
-      border-radius: 20px;
-      transition: all 0.3s ease;
-      white-space: nowrap;
-      cursor: pointer;
-      border: 1px solid transparent;
-      user-select: none;
-    }
-    .step-dot:hover {
-      color: var(--cpg-text);
-      border-color: var(--cpg-border);
-      background: rgba(255, 255, 255, 0.05);
-    }
-    .step-dot.active {
-      color: var(--cpg-accent);
-      background: rgba(100, 255, 218, 0.1);
-      border-color: var(--cpg-accent);
-    }
-
-    /* Animated Form Pages */
-    .form-page {
-      display: none;
-      opacity: 0;
-      transform: translateX(20px);
-      transition: opacity 0.35s ease, transform 0.35s ease;
-    }
-    .form-page.active-page {
-      display: block;
-      opacity: 1;
-      transform: translateX(0);
-    }
-
-    h2 { color: var(--cpg-accent); margin-bottom: 20px; font-size: 1.5rem; }
-
-    /* Modern Table Design */
-    .product-table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-bottom: 20px;
-      background: rgba(10, 25, 47, 0.5);
-      border-radius: 8px;
-      overflow: hidden;
-    }
-    .product-table th {
-      background: #112240;
-      color: var(--cpg-blue);
-      padding: 12px;
-      text-align: left;
-      font-size: 0.85rem;
-      border-bottom: 2px solid var(--cpg-border);
-    }
-    .product-table td {
-      padding: 12px;
-      border-bottom: 1px solid var(--cpg-border);
-      font-size: 0.88rem;
-      vertical-align: middle;
-    }
-    .product-name-hover {
-      cursor: help;
-      color: var(--cpg-text);
-      font-weight: 500;
-      border-bottom: 1px dashed var(--cpg-blue);
-    }
-
-    /* Checkboxes & Inputs */
-    input[type="checkbox"] {
-      width: 18px;
-      height: 18px;
-      accent-color: var(--cpg-accent);
-      cursor: pointer;
-    }
-    input[type="number"], input[type="text"], input[type="tel"] {
-      background: #0a192f;
-      border: 1px solid var(--cpg-border);
-      color: var(--cpg-text);
-      padding: 8px 12px;
-      border-radius: 6px;
-      width: 100%;
-      outline: none;
-      transition: border-color 0.3s ease;
-    }
-    input:focus { border-color: var(--cpg-accent); }
-    .readonly-price { background: #112240 !important; color: var(--cpg-text-muted); cursor: not-allowed; }
-
-    .input-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
-    .input-grid label { display: flex; flex-direction: column; font-size: 0.85rem; color: var(--cpg-text-muted); gap: 5px; }
-
-    /* Discount Box */
-    .discount-box {
-      background: rgba(17, 34, 64, 0.7);
-      padding: 15px;
-      border-radius: 8px;
-      border: 1px solid var(--cpg-border);
-      margin-bottom: 20px;
-    }
-    .radio-group { display: flex; gap: 15px; flex-wrap: wrap; margin-top: 8px; }
-    .radio-group label { cursor: pointer; font-size: 0.9rem; display: flex; align-items: center; gap: 6px; }
-
-    /* Buttons & Controls */
-    .nav-buttons { display: flex; justify-content: space-between; margin-top: 25px; gap: 10px; }
-    button {
-      padding: 10px 22px;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-weight: 600;
-      transition: all 0.3s ease;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .btn-next, .btn-submit { background: var(--cpg-blue); color: var(--cpg-dark-blue); }
-    .btn-next:hover, .btn-submit:hover { background: var(--cpg-accent); transform: translateY(-2px); }
-    .btn-prev { background: #233554; color: var(--cpg-text); }
-    .btn-prev:hover { background: #112240; }
-    .btn-test { background: #ffb703; color: #000; font-weight: 700; margin-bottom: 15px; }
-    .btn-test:hover { background: #ffa200; transform: translateY(-2px); }
-
-    /* Summary Formatting */
-    .summary-totals { text-align: right; background: #112240; padding: 15px; border-radius: 8px; margin-top: 15px; }
-    .summary-totals p { margin: 5px 0; font-size: 1rem; }
-    .summary-totals strong { color: var(--cpg-accent); }
-
-    /* Modal */
-    .modal { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); display:none; justify-content:center; align-items:center; z-index:100; }
-    .modal-content { background:#fff; color:#000; padding:20px; border-radius:8px; max-width:800px; width:90%; max-height:85vh; overflow-y:auto; position:relative; }
-    .close-btn { position:absolute; right:15px; top:10px; font-size:24px; cursor:pointer; color:#000; }
-  </style>
-</head>
-<body>
-
-<div class="quote-app-container">
-  <!-- Clickable Top Menu -->
-  <div id="step-indicator" class="step-indicator"></div>
-
-  <form id="cpg-multi-page-form" onsubmit="event.preventDefault();">
-
-    <!-- PAGE 1: Customer Details (Moved back to the front) -->
-    <div class="form-page active-page" id="page-customer-details">
-      <h2>1. Customer Details</h2>
-      
-      <div>
-        <button type="button" class="btn-test" onclick="populateTestData()">⚡ Test Data</button>
-      </div>
-
-      <div class="input-grid">
-        <label>Company Name: <input type="text" id="cust-company-name" required placeholder="e.g. South Essex Sealed Units LTD"></label>
-        <label>Attention Contact: <input type="text" id="cust-attention" placeholder="e.g. Carl Hicks"></label>
-        <label>Contact Phone Number: <input type="tel" id="cust-phone" placeholder="e.g. +44 1234 567890"></label>
-        <label>Address Line 1: <input type="text" id="cust-addr1" placeholder="UNIT 2 BEAVER ROAD"></label>
-        <label>Address Line 2: <input type="text" id="cust-addr2" placeholder="HAINAULT BUSINESS PARK"></label>
-        <label>City / Town: <input type="text" id="cust-city" placeholder="HAINAULT, ESSEX"></label>
-        <label>Postcode: <input type="text" id="cust-postcode" placeholder="IG6 3UT"></label>
-        <label>Quote Number: <input type="text" id="quote-number" value="QU-1006"></label>
-        <label>Quote Reference: <input type="text" id="quote-ref" value="Reference: MBCH-01"></label>
-      </div>
-
-      <div class="nav-buttons">
-        <div></div>
-        <button type="button" class="btn-next" onclick="nextPage()">Next: Select Products &rarr;</button>
-      </div>
-    </div>
-    
-    <!-- DYNAMIC PRODUCT CATEGORY PAGES (Injected by JS) -->
-    <div id="dynamic-category-pages"></div>
-
-    <!-- FINAL PAGE: Summary & PDF Export -->
-    <div class="form-page" id="page-summary">
-      <h2>Selection Summary</h2>
-      <div id="summary-table-container"></div>
-      
-      <div id="global-discount-container" class="discount-box" style="display:none;">
-        <p><strong>Apply Global Discount to All Products:</strong></p>
-        <div class="radio-group">
-          ${[0, 10, 20, 25, 30, 40, 50].map(val => `
-            <label><input type="radio" name="global_discount" value="${val}" ${val===0?'checked':''} onclick="buildSummaryTable()"> ${val}%</label>
-          `).join('')}
-        </div>
-      </div>
-
-      <div class="nav-buttons">
-        <button type="button" class="btn-prev" onclick="prevPage()">&larr; Back</button>
-        <div>
-          <button type="button" class="btn-next" onclick="previewPDF()">Preview Quote</button>
-          <button type="button" class="btn-submit" onclick="downloadPDF()">Download PDF Quote</button>
-        </div>
-      </div>
-    </div>
-
-  </form>
-</div>
-
-<!-- Modal for PDF Preview -->
-<div id="pdf-modal" class="modal">
-  <div class="modal-content">
-    <span class="close-btn" onclick="closeModal()">&times;</span>
-    <div id="pdf-preview-target"></div>
-  </div>
-</div>
-
-<script>
-// Catalog products sourced from Master Tab (Columns A to M)
-const cpgMasterProducts = [
-  { category: "CYBER App", class: "Apple Mobile Protection", supplier: "Cynet", code: "CA-01", buyPrice: 3.16, sellPrice: 10.00, colK: "Mobile Phone Scan & Threat Detection", colL: "Proactive threat hunting & incident response", colM: "Stops infection on employee mobile devices" },
-  { category: "CYBER App", class: "Android Mobile Protection", supplier: "Cynet", code: "CA-02", buyPrice: 3.16, sellPrice: 10.00, colK: "Mobile App Risk Detection", colL: "On-Device Remediation", colM: "Continuous mobile security" },
-  { category: "CYBER Assure", class: "Cyber Security Training", supplier: "B-KnowBe4", code: "CAS-07", buyPrice: 2.45, sellPrice: 9.00, colK: "Equip employees against cyber threats", colL: "Phishing simulation & awareness", colM: "Reduces risk of user security breaches" },
-  { category: "CYBER Backup", class: "Office 365 / Gmail Backup", supplier: "B-Redstor", code: "CB-01", buyPrice: 1.65, sellPrice: 2.31, colK: "Backup of Mail, OneDrive, SharePoint, Teams", colL: "Controls data exfiltration", colM: "Minimizes ransomware damage" },
-  { category: "CYBER Connect", class: "Broadband Routers & Firewalls", supplier: "Netgear/Draytek", code: "CC-01", buyPrice: 5.00, sellPrice: 8.00, colK: "Enterprise hardware with co-managed support", colL: "Behavioral AI monitoring", colM: "Advanced threat visibility & rapid remediation" },
-  { category: "CYBER Defense", class: "Microsoft Computers (EPP)", supplier: "Cynet", code: "CD-01", buyPrice: 2.96, sellPrice: 8.60, colK: "(Next Gen) Anti-Virus Endpoint Detection", colL: "Multiple prevention layers", colM: "Stops ransomware & zero-day exploits" },
-  { category: "CYBER Defense", class: "Microsoft Servers", supplier: "Cynet", code: "CD-02", buyPrice: 2.96, sellPrice: 18.00, colK: "Server Zero Trust Lockdown", colL: "Monitors application installs", colM: "Real-time threat detection for servers" },
-  { category: "CYBER Defense", class: "Email Protection", supplier: "B-Heimdal Security", code: "CD-06", buyPrice: 1.39, sellPrice: 2.10, colK: "Anti-Phishing & Spam Protection", colL: "Account Takeover Response", colM: "Prevents malicious email threats" },
-  { category: "CYBER Defense", class: "DNS Security", supplier: "B-Heimdal Security", code: "CD-09", buyPrice: 0.95, sellPrice: 1.43, colK: "DNS Infrastructure Protection", colL: "Blocks dangerous malicious domains", colM: "Neutralizes botnet threats" },
-  { category: "Cyber Scan", class: "Dark Web Monitoring", supplier: "B-Trillion", code: "CS-01", buyPrice: 1.25, sellPrice: 6.15, colK: "Proactive scanning for breached credentials", colL: "Instant leak alerts", colM: "Protects against unauthorized account access" },
-  { category: "Cyber Scan", class: "External Vulnerability Scanning", supplier: "CPG", code: "CS-02", buyPrice: 50.00, sellPrice: 117.00, colK: "Scans external IP addresses & domains", colL: "Identifies web app weaknesses (XSS, SQLi)", colM: "Proactively secures internet-facing assets" }
-];
-
-const categories = ["CYBER App", "CYBER Assure", "CYBER Backup", "CYBER Connect", "CYBER Defense", "Cyber Scan"];
-let currentPageIndex = 0;
-let pageDiscounts = {};
-
-document.addEventListener("DOMContentLoaded", () => {
-  categories.forEach(cat => pageDiscounts[cat] = 0);
-  renderCategoryPages();
-  renderStepIndicators();
-  updatePageVisibility();
-});
-
-function renderStepIndicators() {
-  const container = document.getElementById("step-indicator");
-  let html = `<div class="step-dot" id="dot-0" onclick="navigateToPage(0)">Customer Details</div>`;
-  categories.forEach((cat, i) => {
-    html += `<div class="step-dot" id="dot-${i + 1}" onclick="navigateToPage(${i + 1})">${cat}</div>`;
-  });
-  html += `<div class="step-dot" id="dot-${categories.length + 1}" onclick="navigateToPage(${categories.length + 1})">Summary</div>`;
-  container.innerHTML = html;
-}
-
 function renderCategoryPages() {
   const container = document.getElementById("dynamic-category-pages");
   container.innerHTML = "";
@@ -305,7 +18,8 @@ function renderCategoryPages() {
           <th>Product Code</th>
           <th>Supplier</th>
           <th>CPG Buy Price</th>
-          <th>CPG Sell Price (£)</th>
+          <th style="color: #8892b0;">CPG Sell Price (£)</th>
+          <th style="color: #ff4d4d;">CPG Discounted Price (£)</th>
           <th style="width: 80px;">Qty</th>
         </tr>
       </thead>
@@ -313,6 +27,9 @@ function renderCategoryPages() {
 
     catProducts.forEach(prod => {
       const tooltip = `${prod.colK} | ${prod.colL} | ${prod.colM}`;
+      const pageDisc = pageDiscounts[catName] || 0;
+      const discPrice = (prod.sellPrice * (1 - pageDisc / 100)).toFixed(2);
+
       html += `
         <tr>
           <td style="text-align: center;">
@@ -328,7 +45,15 @@ function renderCategoryPages() {
             <input type="number" step="0.01" value="${prod.sellPrice.toFixed(2)}" 
                    id="price_${prod.code}" 
                    data-orig-price="${prod.sellPrice}" 
+                   style="color: #8892b0;"
                    onchange="validateCustomPrice(this)">
+          </td>
+          <td>
+            <input type="number" step="0.01" value="${discPrice}" 
+                   id="disc_price_${prod.code}" 
+                   readonly 
+                   class="readonly-price" 
+                   style="color: #ff4d4d; font-weight: bold;">
           </td>
           <td>
             <input type="number" min="0" value="0" id="qty_${prod.code}" oninput="handleQuantityInput('${prod.code}')">
@@ -364,312 +89,29 @@ function renderCategoryPages() {
   });
 }
 
-// Checkbox and Quantity Synchronization
-function handleQuantityInput(code) {
-  const qtyInput = document.getElementById(`qty_${code}`);
-  const chkInput = document.getElementById(`chk_${code}`);
-  const qty = parseInt(qtyInput.value) || 0;
-
-  // Auto tick checkbox if quantity > 0
-  chkInput.checked = qty > 0;
-}
-
+// Checkbox Toggle: Auto-set Qty to 1 if 0 upon checking, but DO NOT reset Qty when unticked
 function handleCheckboxToggle(code) {
   const qtyInput = document.getElementById(`qty_${code}`);
   const chkInput = document.getElementById(`chk_${code}`);
 
-  // Default quantity to 1 when manually checked, or 0 when unchecked
   if (chkInput.checked && (parseInt(qtyInput.value) || 0) === 0) {
     qtyInput.value = 1;
-  } else if (!chkInput.checked) {
-    qtyInput.value = 0;
   }
 }
 
-// Page Discount Logic & Sell Price Adjustment for Ticked Items
+// Page Discount Handler: Updates the red CPG Discounted Price field
 function setPageDiscount(category, percentage) {
   pageDiscounts[category] = percentage;
 
   const catProducts = cpgMasterProducts.filter(p => p.category === category);
   catProducts.forEach(prod => {
-    const chkInput = document.getElementById(`chk_${prod.code}`);
     const priceInput = document.getElementById(`price_${prod.code}`);
+    const discPriceInput = document.getElementById(`disc_price_${prod.code}`);
 
-    if (chkInput && priceInput) {
-      const origPrice = parseFloat(priceInput.dataset.origPrice);
-      if (chkInput.checked && percentage > 0) {
-        // Adjust CPG Sell Price directly by discount percentage
-        const discountedPrice = origPrice * (1 - (percentage / 100));
-        priceInput.value = discountedPrice.toFixed(2);
-      } else {
-        // Reset to original price
-        priceInput.value = origPrice.toFixed(2);
-      }
+    if (priceInput && discPriceInput) {
+      const origPrice = parseFloat(priceInput.dataset.origPrice) || prod.sellPrice;
+      const discountedPrice = origPrice * (1 - (percentage / 100));
+      discPriceInput.value = discountedPrice.toFixed(2);
     }
   });
 }
-
-function validateCustomPrice(input) {
-  const origPrice = parseFloat(input.dataset.origPrice);
-  const newPrice = parseFloat(input.value);
-  if (newPrice < origPrice * 0.5) {
-    alert("Warning: Custom price discount cannot exceed 50% of original price.");
-    input.value = origPrice.toFixed(2);
-  }
-}
-
-// Menu Navigation
-function navigateToPage(pageIdx) {
-  currentPageIndex = pageIdx;
-  updatePageVisibility();
-}
-
-function updatePageVisibility() {
-  const pages = document.querySelectorAll(".form-page");
-  pages.forEach((p, idx) => {
-    p.classList.toggle("active-page", idx === currentPageIndex);
-  });
-
-  document.querySelectorAll(".step-dot").forEach((dot, idx) => {
-    dot.classList.toggle("active", idx === currentPageIndex);
-  });
-
-  if (currentPageIndex === categories.length + 1) {
-    buildSummaryTable();
-  }
-}
-
-function nextPage() {
-  if (currentPageIndex < categories.length + 1) {
-    currentPageIndex++;
-    updatePageVisibility();
-  }
-}
-
-function prevPage() {
-  if (currentPageIndex > 0) {
-    currentPageIndex--;
-    updatePageVisibility();
-  }
-}
-
-function getSelectedProducts() {
-  const selected = [];
-  cpgMasterProducts.forEach(prod => {
-    const chkInput = document.getElementById(`chk_${prod.code}`);
-    const qtyInput = document.getElementById(`qty_${prod.code}`);
-    const priceInput = document.getElementById(`price_${prod.code}`);
-
-    if (chkInput && qtyInput && priceInput && chkInput.checked) {
-      const qty = parseInt(qtyInput.value) || 0;
-      const unitPrice = parseFloat(priceInput.value) || 0;
-      if (qty > 0) {
-        selected.push({
-          code: prod.code,
-          category: prod.category,
-          class: prod.class,
-          supplier: prod.supplier,
-          qty: qty,
-          unitPrice: unitPrice
-        });
-      }
-    }
-  });
-  return selected;
-}
-
-function buildSummaryTable() {
-  const summaryContainer = document.getElementById("summary-table-container");
-  const globalDiscountContainer = document.getElementById("global-discount-container");
-  const selectedItems = getSelectedProducts();
-  const hasPageDiscounts = Object.values(pageDiscounts).some(d => d > 0);
-
-  globalDiscountContainer.style.display = hasPageDiscounts ? "none" : "block";
-
-  if (selectedItems.length === 0) {
-    summaryContainer.innerHTML = "<p>No products selected. Please select items and set quantities.</p>";
-    return;
-  }
-
-  let subtotal = 0;
-  let html = `
-    <table class="product-table">
-      <thead>
-        <tr>
-          <th>Classification</th>
-          <th>Code</th>
-          <th>Qty</th>
-          <th>Unit Price (£)</th>
-          <th>Total (£)</th>
-        </tr>
-      </thead>
-      <tbody>`;
-
-  selectedItems.forEach(item => {
-    let effectiveUnitPrice = item.unitPrice;
-
-    if (!hasPageDiscounts) {
-      const globalRadio = document.querySelector('input[name="global_discount"]:checked');
-      const globalDiscount = globalRadio ? parseFloat(globalRadio.value) : 0;
-      effectiveUnitPrice = item.unitPrice * (1 - (globalDiscount / 100));
-    }
-
-    const lineTotal = item.qty * effectiveUnitPrice;
-    subtotal += lineTotal;
-
-    html += `
-      <tr>
-        <td>${item.class}</td>
-        <td>${item.code}</td>
-        <td>${item.qty}</td>
-        <td>£${effectiveUnitPrice.toFixed(2)}</td>
-        <td>£${lineTotal.toFixed(2)}</td>
-      </tr>`;
-  });
-
-  const vat = subtotal * 0.20;
-  const total = subtotal + vat;
-
-  html += `</tbody></table>
-    <div class="summary-totals">
-      <p>Subtotal: £${subtotal.toFixed(2)}</p>
-      <p>VAT (20%): £${vat.toFixed(2)}</p>
-      <p><strong>TOTAL GBP: £${total.toFixed(2)}</strong></p>
-    </div>`;
-
-  summaryContainer.innerHTML = html;
-}
-
-function populateTestData() {
-  document.getElementById("cust-company-name").value = "South Essex Sealed Units LTD";
-  document.getElementById("cust-attention").value = "Carl Hicks";
-  document.getElementById("cust-phone").value = "+44 1234 567890";
-  document.getElementById("cust-addr1").value = "UNIT 2 BEAVER ROAD";
-  document.getElementById("cust-addr2").value = "HAINAULT BUSINESS PARK";
-  document.getElementById("cust-city").value = "HAINAULT, ESSEX";
-  document.getElementById("cust-postcode").value = "IG6 3UT";
-  document.getElementById("quote-number").value = "QU-1006";
-  document.getElementById("quote-ref").value = "Reference: MBCH-01";
-}
-
-function generatePDFContent() {
-  const companyName = document.getElementById("cust-company-name").value || "Client Name";
-  const attention = document.getElementById("cust-attention").value || "";
-  const addr1 = document.getElementById("cust-addr1").value || "";
-  const addr2 = document.getElementById("cust-addr2").value || "";
-  const city = document.getElementById("cust-city").value || "";
-  const postcode = document.getElementById("cust-postcode").value || "";
-  const quoteNo = document.getElementById("quote-number").value || "QU-1006";
-  const quoteRef = document.getElementById("quote-ref").value || "";
-
-  const selectedItems = getSelectedProducts();
-  const hasPageDiscounts = Object.values(pageDiscounts).some(d => d > 0);
-  const globalRadio = document.querySelector('input[name="global_discount"]:checked');
-  const globalDiscount = (!hasPageDiscounts && globalRadio) ? parseFloat(globalRadio.value) : 0;
-
-  let subtotal = 0;
-  let rowsHtml = "";
-
-  selectedItems.forEach(item => {
-    let finalUnitPrice = item.unitPrice;
-    if (!hasPageDiscounts && globalDiscount > 0) {
-      finalUnitPrice = item.unitPrice * (1 - (globalDiscount / 100));
-    }
-
-    let amount = item.qty * finalUnitPrice;
-    subtotal += amount;
-
-    rowsHtml += `
-      <tr>
-        <td style="padding: 8px; border-bottom: 1px solid #ddd;">${item.class} (${item.code})</td>
-        <td style="padding: 8px; border-bottom: 1px solid #ddd; text-align: center;">${item.qty}.00</td>
-        <td style="padding: 8px; border-bottom: 1px solid #ddd; text-align: right;">£${finalUnitPrice.toFixed(2)}</td>
-        <td style="padding: 8px; border-bottom: 1px solid #ddd; text-align: center;">20%</td>
-        <td style="padding: 8px; border-bottom: 1px solid #ddd; text-align: right;">£${amount.toFixed(2)}</td>
-      </tr>`;
-  });
-
-  const vat = subtotal * 0.20;
-  const grandTotal = subtotal + vat;
-
-  return `
-    <div style="font-family: Arial, sans-serif; font-size: 12px; color: #333; padding: 20px;">
-      <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
-        <div>
-          <h2 style="margin: 0; color: #111;">QUOTE</h2>
-          <p style="margin: 5px 0;"><strong>${companyName}</strong></p>
-          <p style="margin: 2px 0;">Attention: ${attention}</p>
-          <p style="margin: 2px 0;">${addr1}</p>
-          <p style="margin: 2px 0;">${addr2}</p>
-          <p style="margin: 2px 0;">${city} ${postcode}</p>
-        </div>
-        <div style="text-align: right;">
-          <h3 style="margin: 0; color: #00bcd4;">Cyber Protection Group</h3>
-          <p style="margin: 2px 0;">Date: 12 Jun 2025</p>
-          <p style="margin: 2px 0;">Expiry: 26 Jun 2025</p>
-          <p style="margin: 2px 0;"><strong>Quote Number:</strong> ${quoteNo}</p>
-          <p style="margin: 2px 0;">${quoteRef}</p>
-        </div>
-      </div>
-
-      <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
-        <thead>
-          <tr style="background-color: #f2f2f2; text-align: left;">
-            <th style="padding: 8px;">Description</th>
-            <th style="padding: 8px; text-align: center;">Quantity</th>
-            <th style="padding: 8px; text-align: right;">Unit Price</th>
-            <th style="padding: 8px; text-align: center;">VAT</th>
-            <th style="padding: 8px; text-align: right;">Amount GBP</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${rowsHtml}
-        </tbody>
-      </table>
-
-      <div style="margin-top: 30px; float: right; width: 300px;">
-        <div style="display: flex; justify-content: space-between; padding: 4px 0;">
-          <span>Subtotal</span>
-          <span>£${subtotal.toFixed(2)}</span>
-        </div>
-        <div style="display: flex; justify-content: space-between; padding: 4px 0;">
-          <span>TOTAL VAT 20%</span>
-          <span>£${vat.toFixed(2)}</span>
-        </div>
-        <div style="display: flex; justify-content: space-between; padding: 8px 0; border-top: 2px solid #333; font-weight: bold; font-size: 14px;">
-          <span>TOTAL GBP</span>
-          <span>£${grandTotal.toFixed(2)}</span>
-        </div>
-      </div>
-    </div>
-  `;
-}
-
-function previewPDF() {
-  document.getElementById("pdf-preview-target").innerHTML = generatePDFContent();
-  document.getElementById("pdf-modal").style.display = "flex";
-}
-
-function closeModal() {
-  document.getElementById("pdf-modal").style.display = "none";
-}
-
-function downloadPDF() {
-  const companyName = document.getElementById("cust-company-name").value.trim() || "Customer";
-  const quoteNo = document.getElementById("quote-number").value.trim() || "Quote";
-  const element = document.createElement("div");
-  element.innerHTML = generatePDFContent();
-
-  const opt = {
-    margin: 10,
-    filename: `${companyName} ${quoteNo}.pdf`,
-    image: { type: 'jpeg', quality: 0.98 },
-    html2canvas: { scale: 2 },
-    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-  };
-
-  html2pdf().set(opt).from(element).save();
-}
-</script>
-</body>
-</html>
