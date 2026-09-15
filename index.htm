@@ -15,7 +15,6 @@
       --cpg-text: #e6f1ff;
       --cpg-text-muted: #8892b0;
       --cpg-accent: #64ffda;
-      --cpg-discount-red: #ff4d4d;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
@@ -83,7 +82,7 @@
 
     h2 { color: var(--cpg-accent); margin-bottom: 20px; font-size: 1.5rem; }
 
-    /* Product Table */
+    /* Modern Table Design */
     .product-table {
       width: 100%;
       border-collapse: collapse;
@@ -113,7 +112,7 @@
       border-bottom: 1px dashed var(--cpg-blue);
     }
 
-    /* Form Controls & Checkboxes */
+    /* Checkboxes & Inputs */
     input[type="checkbox"] {
       width: 18px;
       height: 18px;
@@ -147,7 +146,7 @@
     .radio-group { display: flex; gap: 15px; flex-wrap: wrap; margin-top: 8px; }
     .radio-group label { cursor: pointer; font-size: 0.9rem; display: flex; align-items: center; gap: 6px; }
 
-    /* Buttons */
+    /* Buttons & Controls */
     .nav-buttons { display: flex; justify-content: space-between; margin-top: 25px; gap: 10px; }
     button {
       padding: 10px 22px;
@@ -167,12 +166,12 @@
     .btn-test { background: #ffb703; color: #000; font-weight: 700; margin-bottom: 15px; }
     .btn-test:hover { background: #ffa200; transform: translateY(-2px); }
 
-    /* Summary Styling */
+    /* Summary Formatting */
     .summary-totals { text-align: right; background: #112240; padding: 15px; border-radius: 8px; margin-top: 15px; }
     .summary-totals p { margin: 5px 0; font-size: 1rem; }
     .summary-totals strong { color: var(--cpg-accent); }
 
-    /* Modal Styling */
+    /* Modal */
     .modal { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); display:none; justify-content:center; align-items:center; z-index:100; }
     .modal-content { background:#fff; color:#000; padding:20px; border-radius:8px; max-width:800px; width:90%; max-height:85vh; overflow-y:auto; position:relative; }
     .close-btn { position:absolute; right:15px; top:10px; font-size:24px; cursor:pointer; color:#000; }
@@ -181,12 +180,12 @@
 <body>
 
 <div class="quote-app-container">
-  <!-- Clickable Top Bar Menu -->
+  <!-- Clickable Top Menu -->
   <div id="step-indicator" class="step-indicator"></div>
 
   <form id="cpg-multi-page-form" onsubmit="event.preventDefault();">
 
-    <!-- PAGE 1: Customer Details -->
+    <!-- PAGE 1: Customer Details (Moved back to the front) -->
     <div class="form-page active-page" id="page-customer-details">
       <h2>1. Customer Details</h2>
       
@@ -212,10 +211,10 @@
       </div>
     </div>
     
-    <!-- Dynamic Product Category Pages -->
+    <!-- DYNAMIC PRODUCT CATEGORY PAGES (Injected by JS) -->
     <div id="dynamic-category-pages"></div>
 
-    <!-- FINAL PAGE: Summary & Export -->
+    <!-- FINAL PAGE: Summary & PDF Export -->
     <div class="form-page" id="page-summary">
       <h2>Selection Summary</h2>
       <div id="summary-table-container"></div>
@@ -223,13 +222,9 @@
       <div id="global-discount-container" class="discount-box" style="display:none;">
         <p><strong>Apply Global Discount to All Products:</strong></p>
         <div class="radio-group">
-          <label><input type="radio" name="global_discount" value="0" checked onclick="buildSummaryTable()"> 0%</label>
-          <label><input type="radio" name="global_discount" value="10" onclick="buildSummaryTable()"> 10%</label>
-          <label><input type="radio" name="global_discount" value="20" onclick="buildSummaryTable()"> 20%</label>
-          <label><input type="radio" name="global_discount" value="25" onclick="buildSummaryTable()"> 25%</label>
-          <label><input type="radio" name="global_discount" value="30" onclick="buildSummaryTable()"> 30%</label>
-          <label><input type="radio" name="global_discount" value="40" onclick="buildSummaryTable()"> 40%</label>
-          <label><input type="radio" name="global_discount" value="50" onclick="buildSummaryTable()"> 50%</label>
+          ${[0, 10, 20, 25, 30, 40, 50].map(val => `
+            <label><input type="radio" name="global_discount" value="${val}" ${val===0?'checked':''} onclick="buildSummaryTable()"> ${val}%</label>
+          `).join('')}
         </div>
       </div>
 
@@ -245,7 +240,7 @@
   </form>
 </div>
 
-<!-- Preview Modal -->
+<!-- Modal for PDF Preview -->
 <div id="pdf-modal" class="modal">
   <div class="modal-content">
     <span class="close-btn" onclick="closeModal()">&times;</span>
@@ -310,7 +305,7 @@ function renderCategoryPages() {
           <th>Product Code</th>
           <th>Supplier</th>
           <th>CPG Buy Price</th>
-          <th class="sell-header-col">CPG Sell Price (£)</th>
+          <th>CPG Sell Price (£)</th>
           <th style="width: 80px;">Qty</th>
         </tr>
       </thead>
@@ -318,11 +313,10 @@ function renderCategoryPages() {
 
     catProducts.forEach(prod => {
       const tooltip = `${prod.colK} | ${prod.colL} | ${prod.colM}`;
-
       html += `
         <tr>
           <td style="text-align: center;">
-            <input type="checkbox" id="chk_${prod.code}" onchange="handleCheckboxToggle('${prod.code}', '${catName}')">
+            <input type="checkbox" id="chk_${prod.code}" onchange="handleCheckboxToggle('${prod.code}')">
           </td>
           <td>
             <span class="product-name-hover" title="${tooltip}">${prod.class} ℹ️</span>
@@ -330,7 +324,7 @@ function renderCategoryPages() {
           <td><strong>${prod.code}</strong></td>
           <td>${prod.supplier}</td>
           <td><input type="text" value="£${prod.buyPrice.toFixed(2)}" readonly class="readonly-price"></td>
-          <td class="sell-cell-${prod.code}">
+          <td>
             <input type="number" step="0.01" value="${prod.sellPrice.toFixed(2)}" 
                    id="price_${prod.code}" 
                    data-orig-price="${prod.sellPrice}" 
@@ -344,7 +338,7 @@ function renderCategoryPages() {
 
     html += `</tbody></table>`;
 
-    // Page Discount Options
+    // Page Level Discount Options
     html += `
       <div class="discount-box">
         <p><strong>Page Discount (${catName}):</strong></p>
@@ -358,7 +352,7 @@ function renderCategoryPages() {
         </div>
       </div>`;
 
-    // Navigation Buttons
+    // Navigation Controls
     html += `
       <div class="nav-buttons">
         <button type="button" class="btn-prev" onclick="prevPage()">&larr; Back</button>
@@ -370,102 +364,47 @@ function renderCategoryPages() {
   });
 }
 
-// Auto-check on quantity increase (>0)
+// Checkbox and Quantity Synchronization
 function handleQuantityInput(code) {
   const qtyInput = document.getElementById(`qty_${code}`);
   const chkInput = document.getElementById(`chk_${code}`);
   const qty = parseInt(qtyInput.value) || 0;
 
-  if (qty > 0) {
-    chkInput.checked = true;
-  }
+  // Auto tick checkbox if quantity > 0
+  chkInput.checked = qty > 0;
 }
 
-// Checkbox Toggle: Update line items in-place without rebuilding the table
-function handleCheckboxToggle(code, category) {
+function handleCheckboxToggle(code) {
   const qtyInput = document.getElementById(`qty_${code}`);
   const chkInput = document.getElementById(`chk_${code}`);
 
+  // Default quantity to 1 when manually checked, or 0 when unchecked
   if (chkInput.checked && (parseInt(qtyInput.value) || 0) === 0) {
     qtyInput.value = 1;
+  } else if (!chkInput.checked) {
+    qtyInput.value = 0;
   }
-
-  updateCategoryDiscountDOM(category);
 }
 
-// Discount Handler: Updates table elements in-place without tearing down the DOM
+// Page Discount Logic & Sell Price Adjustment for Ticked Items
 function setPageDiscount(category, percentage) {
   pageDiscounts[category] = percentage;
-  updateCategoryDiscountDOM(category);
-}
 
-// Directly updates existing table elements in the DOM
-function updateCategoryDiscountDOM(category) {
-  const catIdx = categories.indexOf(category);
-  if (catIdx === -1) return;
-
-  const pageDiv = document.getElementById(`page-cat-${catIdx}`);
-  if (!pageDiv) return;
-
-  const table = pageDiv.querySelector('.product-table');
-  if (!table) return;
-
-  const pageDisc = pageDiscounts[category] || 0;
-  const hasDiscount = pageDisc > 0;
-
-  // 1. Update Header Colors & Dynamic Discount Column Header
-  const sellHeader = table.querySelector('.sell-header-col');
-  let discHeader = table.querySelector('.disc-header-col');
-
-  if (hasDiscount) {
-    if (sellHeader) sellHeader.style.color = '#8892b0';
-    
-    if (!discHeader && sellHeader) {
-      discHeader = document.createElement('th');
-      discHeader.className = 'disc-header-col';
-      discHeader.style.color = '#ff4d4d';
-      discHeader.textContent = 'CPG Discounted Price (£)';
-      sellHeader.insertAdjacentElement('afterend', discHeader);
-    }
-  } else {
-    if (sellHeader) sellHeader.style.color = 'var(--cpg-blue)';
-    if (discHeader) discHeader.remove();
-  }
-
-  // 2. Update Row Cells for checked/ticked items
   const catProducts = cpgMasterProducts.filter(p => p.category === category);
   catProducts.forEach(prod => {
-    const sellPriceInput = document.getElementById(`price_${prod.code}`);
     const chkInput = document.getElementById(`chk_${prod.code}`);
-    if (!sellPriceInput || !chkInput) return;
+    const priceInput = document.getElementById(`price_${prod.code}`);
 
-    const row = sellPriceInput.closest('tr');
-    const sellCell = sellPriceInput.closest('td');
-    let discCell = row.querySelector(`.disc-cell-${prod.code}`);
-
-    // Only apply discount display to items that are currently TICKED
-    if (hasDiscount && chkInput.checked) {
-      sellPriceInput.style.color = '#8892b0';
-      const basePrice = parseFloat(sellPriceInput.value) || prod.sellPrice;
-      const discPrice = (basePrice * (1 - pageDisc / 100)).toFixed(2);
-
-      if (!discCell) {
-        discCell = document.createElement('td');
-        discCell.className = `disc-cell-${prod.code}`;
-        discCell.innerHTML = `
-          <input type="number" step="0.01" value="${discPrice}" 
-                 id="disc_price_${prod.code}" 
-                 readonly 
-                 class="readonly-price" 
-                 style="color: #ff4d4d; font-weight: bold;">`;
-        sellCell.insertAdjacentElement('afterend', discCell);
+    if (chkInput && priceInput) {
+      const origPrice = parseFloat(priceInput.dataset.origPrice);
+      if (chkInput.checked && percentage > 0) {
+        // Adjust CPG Sell Price directly by discount percentage
+        const discountedPrice = origPrice * (1 - (percentage / 100));
+        priceInput.value = discountedPrice.toFixed(2);
       } else {
-        const discInput = document.getElementById(`disc_price_${prod.code}`);
-        if (discInput) discInput.value = discPrice;
+        // Reset to original price
+        priceInput.value = origPrice.toFixed(2);
       }
-    } else {
-      sellPriceInput.style.color = '';
-      if (discCell) discCell.remove();
     }
   });
 }
@@ -479,6 +418,7 @@ function validateCustomPrice(input) {
   }
 }
 
+// Menu Navigation
 function navigateToPage(pageIdx) {
   currentPageIndex = pageIdx;
   updatePageVisibility();
@@ -519,18 +459,10 @@ function getSelectedProducts() {
     const chkInput = document.getElementById(`chk_${prod.code}`);
     const qtyInput = document.getElementById(`qty_${prod.code}`);
     const priceInput = document.getElementById(`price_${prod.code}`);
-    const discPriceInput = document.getElementById(`disc_price_${prod.code}`);
 
-    if (chkInput && qtyInput && chkInput.checked) {
+    if (chkInput && qtyInput && priceInput && chkInput.checked) {
       const qty = parseInt(qtyInput.value) || 0;
-      const pageDisc = pageDiscounts[prod.category] || 0;
-
-      // Use discounted price if column exists and item is checked, else standard sell price
-      let unitPrice = parseFloat(priceInput.value) || 0;
-      if (discPriceInput && pageDisc > 0) {
-        unitPrice = parseFloat(discPriceInput.value) || 0;
-      }
-
+      const unitPrice = parseFloat(priceInput.value) || 0;
       if (qty > 0) {
         selected.push({
           code: prod.code,
