@@ -223,9 +223,13 @@
       <div id="global-discount-container" class="discount-box" style="display:none;">
         <p><strong>Apply Global Discount to All Products:</strong></p>
         <div class="radio-group">
-          ${[0, 10, 20, 25, 30, 40, 50].map(val => `
-            <label><input type="radio" name="global_discount" value="${val}" ${val===0?'checked':''} onclick="buildSummaryTable()"> ${val}%</label>
-          `).join('')}
+          <label><input type="radio" name="global_discount" value="0" checked onclick="buildSummaryTable()"> 0%</label>
+          <label><input type="radio" name="global_discount" value="10" onclick="buildSummaryTable()"> 10%</label>
+          <label><input type="radio" name="global_discount" value="20" onclick="buildSummaryTable()"> 20%</label>
+          <label><input type="radio" name="global_discount" value="25" onclick="buildSummaryTable()"> 25%</label>
+          <label><input type="radio" name="global_discount" value="30" onclick="buildSummaryTable()"> 30%</label>
+          <label><input type="radio" name="global_discount" value="40" onclick="buildSummaryTable()"> 40%</label>
+          <label><input type="radio" name="global_discount" value="50" onclick="buildSummaryTable()"> 50%</label>
         </div>
       </div>
 
@@ -296,8 +300,6 @@ function renderCategoryPages() {
     pageDiv.id = `page-cat-${idx}`;
 
     const catProducts = cpgMasterProducts.filter(p => p.category === catName);
-    const hasDiscount = pageDiscounts[catName] > 0;
-    const sellHeaderColor = hasDiscount ? "#8892b0" : "var(--cpg-blue)";
 
     let html = `<h2>${catName}</h2>`;
     html += `<table class="product-table">
@@ -308,8 +310,7 @@ function renderCategoryPages() {
           <th>Product Code</th>
           <th>Supplier</th>
           <th>CPG Buy Price</th>
-          <th style="color: ${sellHeaderColor};">CPG Sell Price (£)</th>
-          ${hasDiscount ? `<th style="color: #ff4d4d;">CPG Discounted Price (£)</th>` : ''}
+          <th class="sell-header-col">CPG Sell Price (£)</th>
           <th style="width: 80px;">Qty</th>
         </tr>
       </thead>
@@ -317,8 +318,6 @@ function renderCategoryPages() {
 
     catProducts.forEach(prod => {
       const tooltip = `${prod.colK} | ${prod.colL} | ${prod.colM}`;
-      const pageDisc = pageDiscounts[catName] || 0;
-      const discPrice = (prod.sellPrice * (1 - pageDisc / 100)).toFixed(2);
 
       html += `
         <tr>
@@ -331,21 +330,12 @@ function renderCategoryPages() {
           <td><strong>${prod.code}</strong></td>
           <td>${prod.supplier}</td>
           <td><input type="text" value="£${prod.buyPrice.toFixed(2)}" readonly class="readonly-price"></td>
-          <td>
+          <td class="sell-cell-${prod.code}">
             <input type="number" step="0.01" value="${prod.sellPrice.toFixed(2)}" 
                    id="price_${prod.code}" 
                    data-orig-price="${prod.sellPrice}" 
-                   style="${hasDiscount ? 'color: #8892b0;' : ''}"
                    onchange="validateCustomPrice(this)">
           </td>
-          ${hasDiscount ? `
-          <td>
-            <input type="number" step="0.01" value="${discPrice}" 
-                   id="disc_price_${prod.code}" 
-                   readonly 
-                   class="readonly-price" 
-                   style="color: #ff4d4d; font-weight: bold;">
-          </td>` : ''}
           <td>
             <input type="number" min="0" value="0" id="qty_${prod.code}" oninput="handleQuantityInput('${prod.code}')">
           </td>
@@ -361,7 +351,7 @@ function renderCategoryPages() {
         <div class="radio-group">
           ${[0, 10, 20, 25, 30, 40, 50].map(val => `
             <label>
-              <input type="radio" name="discount_${catName}" value="${val}" ${val === pageDiscounts[catName] ? 'checked' : ''} onclick="setPageDiscount('${catName}', ${val})"> 
+              <input type="radio" name="discount_${catName}" value="${val}" ${val === 0 ? 'checked' : ''} onclick="setPageDiscount('${catName}', ${val})"> 
               ${val}%
             </label>
           `).join('')}
@@ -391,7 +381,7 @@ function handleQuantityInput(code) {
   }
 }
 
-// Checkbox Toggle: Auto-set quantity to 1 if checking with 0, but DO NOT reset quantity when unticking
+// Checkbox Toggle: Update line items in-place without rebuilding the table
 function handleCheckboxToggle(code, category) {
   const qtyInput = document.getElementById(`qty_${code}`);
   const chkInput = document.getElementById(`chk_${code}`);
@@ -400,16 +390,84 @@ function handleCheckboxToggle(code, category) {
     qtyInput.value = 1;
   }
 
-  // Recalculate price application for this row
-  setPageDiscount(category, pageDiscounts[category] || 0);
+  updateCategoryDiscountDOM(category);
 }
 
-// Discount Handler: Rerenders category layout when switching discounts (adds/removes column & updates header styles)
+// Discount Handler: Updates table elements in-place without tearing down the DOM
 function setPageDiscount(category, percentage) {
   pageDiscounts[category] = percentage;
-  
-  // Re-render to show/hide the CPG Discounted Price column dynamically
-  renderCategoryPages();
+  updateCategoryDiscountDOM(category);
+}
+
+// Directly updates existing table elements in the DOM
+function updateCategoryDiscountDOM(category) {
+  const catIdx = categories.indexOf(category);
+  if (catIdx === -1) return;
+
+  const pageDiv = document.getElementById(`page-cat-${catIdx}`);
+  if (!pageDiv) return;
+
+  const table = pageDiv.querySelector('.product-table');
+  if (!table) return;
+
+  const pageDisc = pageDiscounts[category] || 0;
+  const hasDiscount = pageDisc > 0;
+
+  // 1. Update Header Colors & Dynamic Discount Column Header
+  const sellHeader = table.querySelector('.sell-header-col');
+  let discHeader = table.querySelector('.disc-header-col');
+
+  if (hasDiscount) {
+    if (sellHeader) sellHeader.style.color = '#8892b0';
+    
+    if (!discHeader && sellHeader) {
+      discHeader = document.createElement('th');
+      discHeader.className = 'disc-header-col';
+      discHeader.style.color = '#ff4d4d';
+      discHeader.textContent = 'CPG Discounted Price (£)';
+      sellHeader.insertAdjacentElement('afterend', discHeader);
+    }
+  } else {
+    if (sellHeader) sellHeader.style.color = 'var(--cpg-blue)';
+    if (discHeader) discHeader.remove();
+  }
+
+  // 2. Update Row Cells for checked/ticked items
+  const catProducts = cpgMasterProducts.filter(p => p.category === category);
+  catProducts.forEach(prod => {
+    const sellPriceInput = document.getElementById(`price_${prod.code}`);
+    const chkInput = document.getElementById(`chk_${prod.code}`);
+    if (!sellPriceInput || !chkInput) return;
+
+    const row = sellPriceInput.closest('tr');
+    const sellCell = sellPriceInput.closest('td');
+    let discCell = row.querySelector(`.disc-cell-${prod.code}`);
+
+    // Only apply discount display to items that are currently TICKED
+    if (hasDiscount && chkInput.checked) {
+      sellPriceInput.style.color = '#8892b0';
+      const basePrice = parseFloat(sellPriceInput.value) || prod.sellPrice;
+      const discPrice = (basePrice * (1 - pageDisc / 100)).toFixed(2);
+
+      if (!discCell) {
+        discCell = document.createElement('td');
+        discCell.className = `disc-cell-${prod.code}`;
+        discCell.innerHTML = `
+          <input type="number" step="0.01" value="${discPrice}" 
+                 id="disc_price_${prod.code}" 
+                 readonly 
+                 class="readonly-price" 
+                 style="color: #ff4d4d; font-weight: bold;">`;
+        sellCell.insertAdjacentElement('afterend', discCell);
+      } else {
+        const discInput = document.getElementById(`disc_price_${prod.code}`);
+        if (discInput) discInput.value = discPrice;
+      }
+    } else {
+      sellPriceInput.style.color = '';
+      if (discCell) discCell.remove();
+    }
+  });
 }
 
 function validateCustomPrice(input) {
