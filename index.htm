@@ -15,7 +15,6 @@
       --text-main: #e6f1ff;
       --text-muted: #8892b0;
       --danger: #ff4d4d;
-      --disabled: #4a5568;
       --font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
     }
 
@@ -154,6 +153,8 @@
     }
 
     th { background: rgba(255, 255, 255, 0.03); color: var(--accent); }
+    th.sell-header-grey { color: #8892b0 !important; }
+    th.disc-header-red { color: var(--danger) !important; }
 
     .tooltip-icon {
       cursor: help;
@@ -174,11 +175,8 @@
       font-style: italic;
     }
 
-    .price-original {
-      text-decoration: line-through;
-      color: var(--text-muted);
-      font-size: 0.8rem;
-      margin-right: 4px;
+    .price-grey {
+      color: #8892b0;
     }
 
     .price-discounted {
@@ -339,6 +337,7 @@
     categories.forEach((cat, index) => {
       const stepNum = index + 2;
       const catProducts = cpgProductCatalog.filter(p => p.category === cat);
+      const hasDisc = (pageDiscounts[cat] || 0) > 0;
 
       html += `
         <div class="form-step" id="step-${stepNum}">
@@ -347,7 +346,7 @@
               <h2>${cat}</h2>
               <div class="discount-picker">
                 <label>Page Discount:</label>
-                <select onchange="applyPageDiscount('${cat}', this.value)">
+                <select id="discount-select-${stepNum}" onchange="applyPageDiscount('${cat}', this.value)">
                   <option value="0">0%</option>
                   <option value="10">10%</option>
                   <option value="20">20%</option>
@@ -359,7 +358,7 @@
               </div>
             </div>
 
-            <table>
+            <table id="table-cat-${stepNum}">
               <thead>
                 <tr>
                   <th>Select</th>
@@ -367,30 +366,48 @@
                   <th>Code</th>
                   <th>Supplier</th>
                   <th>Buy Price</th>
-                  <th>Sell Price</th>
+                  <th id="th-sell-${stepNum}" class="${hasDisc ? 'sell-header-grey' : ''}">CPG Sell Price (£)</th>
+                  ${hasDisc ? `<th id="th-disc-${stepNum}" class="disc-header-red">CPG Discounted Price (£)</th>` : ''}
                   <th>Qty</th>
                 </tr>
               </thead>
               <tbody>`;
 
       if (catProducts.length === 0) {
-        html += `<tr><td colspan="7" style="text-align:center; color:var(--text-muted);">No products currently loaded for ${cat}.</td></tr>`;
+        const colSpan = hasDisc ? 8 : 7;
+        html += `<tr><td colspan="${colSpan}" style="text-align:center; color:var(--text-muted);">No products currently loaded for ${cat}.</td></tr>`;
       } else {
         catProducts.forEach(item => {
           const tooltip = `Service Offering: ${item.serviceOffering}\nFunction: ${item.functionOfProduct}\nCyber Benefit: ${item.cyberBenefit}`;
           const isAvail = item.sellPrice !== null && item.sellPrice !== undefined;
+          const isTicked = productSelections[item.code].selected;
           const buyPriceStr = item.buyPrice !== null ? `£${item.buyPrice.toFixed(2)}` : '<span class="price-na">n/a</span>';
-          const sellPriceStr = isAvail ? `£${item.sellPrice.toFixed(2)}` : '<span class="price-na">n/a</span>';
+          
+          let sellPriceStr = '<span class="price-na">n/a</span>';
+          if (isAvail) {
+            sellPriceStr = hasDisc && isTicked ? `<span class="price-grey">£${item.sellPrice.toFixed(2)}</span>` : `£${item.sellPrice.toFixed(2)}`;
+          }
+
+          let discTd = '';
+          if (hasDisc) {
+            if (isAvail && isTicked) {
+              const discounted = item.sellPrice * (1 - (pageDiscounts[cat] / 100));
+              discTd = `<td id="disc-cell-${item.code}" class="price-discounted">£${discounted.toFixed(2)}</td>`;
+            } else {
+              discTd = `<td id="disc-cell-${item.code}" style="color:#8892b0; text-align:center;">-</td>`;
+            }
+          }
 
           html += `
-            <tr style="${!isAvail ? 'opacity: 0.55;' : ''}">
-              <td><input type="checkbox" id="chk-${item.code}" ${!isAvail ? 'disabled' : ''} onchange="toggleSelect('${item.code}', this.checked)"></td>
+            <tr id="row-${item.code}" style="${!isAvail ? 'opacity: 0.55;' : ''}">
+              <td><input type="checkbox" id="chk-${item.code}" ${!isAvail ? 'disabled' : ''} ${isTicked ? 'checked' : ''} onchange="toggleSelect('${item.code}', this.checked)"></td>
               <td>${item.classification} <span class="tooltip-icon" title="${tooltip}">?</span></td>
               <td>${item.code}</td>
               <td>${item.supplier}</td>
               <td>${buyPriceStr}</td>
               <td id="price-cell-${item.code}">${sellPriceStr}</td>
-              <td><input type="number" class="qty-input" min="0" value="0" id="qty-${item.code}" ${!isAvail ? 'disabled' : ''} oninput="updateQty('${item.code}', this.value)"></td>
+              ${discTd}
+              <td><input type="number" class="qty-input" min="0" value="${productSelections[item.code].qty}" id="qty-${item.code}" ${!isAvail ? 'disabled' : ''} oninput="updateQty('${item.code}', this.value)"></td>
             </tr>`;
         });
       }
@@ -416,41 +433,120 @@
     const qty = parseInt(value) || 0;
     productSelections[code].qty = qty;
 
-    const chk = document.getElementById(`chk-${code}`);
     if (qty > 0) {
       productSelections[code].selected = true;
+      const chk = document.getElementById(`chk-${code}`);
       if (chk) chk.checked = true;
     }
+    
+    // Refresh table row displays for current category discount application
+    const item = cpgProductCatalog.find(p => p.code === code);
+    if (item) applyPageDiscount(item.category, pageDiscounts[item.category] || 0);
   }
 
-  // Maintain Qty on Unchecking Checkbox
+  // Decoupled Checkbox Toggle (Does not reset quantity to 0 when unticked)
   function toggleSelect(code, isChecked) {
     if (!productSelections[code].isAvailable) return;
     productSelections[code].selected = isChecked;
+    
+    // Auto-assign quantity to 1 if ticked with 0 quantity
     if (isChecked && productSelections[code].qty === 0) {
       productSelections[code].qty = 1;
-      document.getElementById(`qty-${code}`).value = 1;
+      const qtyInput = document.getElementById(`qty-${code}`);
+      if (qtyInput) qtyInput.value = 1;
     }
+
+    // Refresh table row displays for current category discount application
+    const item = cpgProductCatalog.find(p => p.code === code);
+    if (item) applyPageDiscount(item.category, pageDiscounts[item.category] || 0);
   }
 
-  // Handle Page Level Discounts & Display Styles
+  // Handle Page Level Discounts (Applied STRICTLY to ticked rows)
   function applyPageDiscount(cat, discountPct) {
     const pct = parseFloat(discountPct) || 0;
     pageDiscounts[cat] = pct;
 
-    cpgProductCatalog.filter(p => p.category === cat).forEach(item => {
-      if (item.sellPrice === null || item.sellPrice === undefined) return;
+    const catIdx = categories.indexOf(cat);
+    if (catIdx === -1) return;
+    const stepNum = catIdx + 2;
 
-      const discounted = item.sellPrice * (1 - pct / 100);
-      productSelections[item.code].customSellPrice = discounted;
+    const table = document.getElementById(`table-cat-${stepNum}`);
+    if (!table) return;
 
-      const cell = document.getElementById(`price-cell-${item.code}`);
-      if (cell) {
-        if (pct > 0) {
-          cell.innerHTML = `<span class="price-original">£${item.sellPrice.toFixed(2)}</span> <span class="price-discounted">£${discounted.toFixed(2)}</span>`;
+    const hasDiscount = pct > 0;
+    let sellHeader = document.getElementById(`th-sell-${stepNum}`);
+    let discHeader = document.getElementById(`th-disc-${stepNum}`);
+
+    // Manage Discount Column Header Addition/Removal
+    if (hasDiscount) {
+      if (sellHeader) sellHeader.classList.add('sell-header-grey');
+      if (!discHeader && sellHeader) {
+        discHeader = document.createElement('th');
+        discHeader.id = `th-disc-${stepNum}`;
+        discHeader.className = 'disc-header-red';
+        discHeader.textContent = 'CPG Discounted Price (£)';
+        sellHeader.insertAdjacentElement('afterend', discHeader);
+      }
+    } else {
+      if (sellHeader) sellHeader.classList.remove('sell-header-grey');
+      if (discHeader) discHeader.remove();
+    }
+
+    // Update Product Rows based on Ticked state
+    const catProducts = cpgProductCatalog.filter(p => p.category === cat);
+    catProducts.forEach(item => {
+      const isAvail = item.sellPrice !== null && item.sellPrice !== undefined;
+      const isTicked = productSelections[item.code].selected;
+      
+      const priceCell = document.getElementById(`price-cell-${item.code}`);
+      let discCell = document.getElementById(`disc-cell-${item.code}`);
+
+      if (!isAvail) return;
+
+      if (hasDiscount) {
+        if (isTicked) {
+          // Apply discount strictly to ticked items
+          const discounted = item.sellPrice * (1 - pct / 100);
+          productSelections[item.code].customSellPrice = discounted;
+
+          if (priceCell) priceCell.innerHTML = `<span class="price-grey">£${item.sellPrice.toFixed(2)}</span>`;
+
+          if (!discCell && priceCell) {
+            discCell = document.createElement('td');
+            discCell.id = `disc-cell-${item.code}`;
+            discCell.className = 'price-discounted';
+            discCell.innerText = `£${discounted.toFixed(2)}`;
+            priceCell.insertAdjacentElement('afterend', discCell);
+          } else if (discCell) {
+            discCell.className = 'price-discounted';
+            discCell.style.textAlign = 'left';
+            discCell.innerText = `£${discounted.toFixed(2)}`;
+          }
         } else {
-          cell.innerText = `£${item.sellPrice.toFixed(2)}`;
+          // Item is NOT ticked: Retain base sell price and render empty cell in discount column
+          productSelections[item.code].customSellPrice = item.sellPrice;
+
+          if (priceCell) priceCell.innerText = `£${item.sellPrice.toFixed(2)}`;
+
+          if (!discCell && priceCell) {
+            discCell = document.createElement('td');
+            discCell.id = `disc-cell-${item.code}`;
+            discCell.style.color = '#8892b0';
+            discCell.style.textAlign = 'center';
+            discCell.innerText = '-';
+            priceCell.insertAdjacentElement('afterend', discCell);
+          } else if (discCell) {
+            discCell.className = '';
+            discCell.style.color = '#8892b0';
+            discCell.style.textAlign = 'center';
+            discCell.innerText = '-';
+          }
         }
+      } else {
+        // Restore standard non-discounted display state
+        productSelections[item.code].customSellPrice = item.sellPrice;
+        if (priceCell) priceCell.innerText = `£${item.sellPrice.toFixed(2)}`;
+        if (discCell) discCell.remove();
       }
     });
   }
