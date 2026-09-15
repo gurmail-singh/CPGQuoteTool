@@ -296,6 +296,8 @@ function renderCategoryPages() {
     pageDiv.id = `page-cat-${idx}`;
 
     const catProducts = cpgMasterProducts.filter(p => p.category === catName);
+    const hasDiscount = pageDiscounts[catName] > 0;
+    const sellHeaderColor = hasDiscount ? "#8892b0" : "var(--cpg-blue)";
 
     let html = `<h2>${catName}</h2>`;
     html += `<table class="product-table">
@@ -306,8 +308,8 @@ function renderCategoryPages() {
           <th>Product Code</th>
           <th>Supplier</th>
           <th>CPG Buy Price</th>
-          <th style="color: #8892b0;">CPG Sell Price (£)</th>
-          <th style="color: #ff4d4d;">CPG Discounted Price (£)</th>
+          <th style="color: ${sellHeaderColor};">CPG Sell Price (£)</th>
+          ${hasDiscount ? `<th style="color: #ff4d4d;">CPG Discounted Price (£)</th>` : ''}
           <th style="width: 80px;">Qty</th>
         </tr>
       </thead>
@@ -321,7 +323,7 @@ function renderCategoryPages() {
       html += `
         <tr>
           <td style="text-align: center;">
-            <input type="checkbox" id="chk_${prod.code}" onchange="handleCheckboxToggle('${prod.code}')">
+            <input type="checkbox" id="chk_${prod.code}" onchange="handleCheckboxToggle('${prod.code}', '${catName}')">
           </td>
           <td>
             <span class="product-name-hover" title="${tooltip}">${prod.class} ℹ️</span>
@@ -333,16 +335,17 @@ function renderCategoryPages() {
             <input type="number" step="0.01" value="${prod.sellPrice.toFixed(2)}" 
                    id="price_${prod.code}" 
                    data-orig-price="${prod.sellPrice}" 
-                   style="color: #8892b0;"
+                   style="${hasDiscount ? 'color: #8892b0;' : ''}"
                    onchange="validateCustomPrice(this)">
           </td>
+          ${hasDiscount ? `
           <td>
             <input type="number" step="0.01" value="${discPrice}" 
                    id="disc_price_${prod.code}" 
                    readonly 
                    class="readonly-price" 
                    style="color: #ff4d4d; font-weight: bold;">
-          </td>
+          </td>` : ''}
           <td>
             <input type="number" min="0" value="0" id="qty_${prod.code}" oninput="handleQuantityInput('${prod.code}')">
           </td>
@@ -358,7 +361,7 @@ function renderCategoryPages() {
         <div class="radio-group">
           ${[0, 10, 20, 25, 30, 40, 50].map(val => `
             <label>
-              <input type="radio" name="discount_${catName}" value="${val}" ${val === 0 ? 'checked' : ''} onclick="setPageDiscount('${catName}', ${val})"> 
+              <input type="radio" name="discount_${catName}" value="${val}" ${val === pageDiscounts[catName] ? 'checked' : ''} onclick="setPageDiscount('${catName}', ${val})"> 
               ${val}%
             </label>
           `).join('')}
@@ -377,7 +380,7 @@ function renderCategoryPages() {
   });
 }
 
-// Auto-check on quantity increase
+// Auto-check on quantity increase (>0)
 function handleQuantityInput(code) {
   const qtyInput = document.getElementById(`qty_${code}`);
   const chkInput = document.getElementById(`chk_${code}`);
@@ -389,30 +392,24 @@ function handleQuantityInput(code) {
 }
 
 // Checkbox Toggle: Auto-set quantity to 1 if checking with 0, but DO NOT reset quantity when unticking
-function handleCheckboxToggle(code) {
+function handleCheckboxToggle(code, category) {
   const qtyInput = document.getElementById(`qty_${code}`);
   const chkInput = document.getElementById(`chk_${code}`);
 
   if (chkInput.checked && (parseInt(qtyInput.value) || 0) === 0) {
     qtyInput.value = 1;
   }
+
+  // Recalculate price application for this row
+  setPageDiscount(category, pageDiscounts[category] || 0);
 }
 
-// Updates CPG Discounted Price
+// Discount Handler: Rerenders category layout when switching discounts (adds/removes column & updates header styles)
 function setPageDiscount(category, percentage) {
   pageDiscounts[category] = percentage;
-
-  const catProducts = cpgMasterProducts.filter(p => p.category === category);
-  catProducts.forEach(prod => {
-    const priceInput = document.getElementById(`price_${prod.code}`);
-    const discPriceInput = document.getElementById(`disc_price_${prod.code}`);
-
-    if (priceInput && discPriceInput) {
-      const origPrice = parseFloat(priceInput.dataset.origPrice) || prod.sellPrice;
-      const discountedPrice = origPrice * (1 - (percentage / 100));
-      discPriceInput.value = discountedPrice.toFixed(2);
-    }
-  });
+  
+  // Re-render to show/hide the CPG Discounted Price column dynamically
+  renderCategoryPages();
 }
 
 function validateCustomPrice(input) {
@@ -463,11 +460,19 @@ function getSelectedProducts() {
   cpgMasterProducts.forEach(prod => {
     const chkInput = document.getElementById(`chk_${prod.code}`);
     const qtyInput = document.getElementById(`qty_${prod.code}`);
+    const priceInput = document.getElementById(`price_${prod.code}`);
     const discPriceInput = document.getElementById(`disc_price_${prod.code}`);
 
-    if (chkInput && qtyInput && discPriceInput && chkInput.checked) {
+    if (chkInput && qtyInput && chkInput.checked) {
       const qty = parseInt(qtyInput.value) || 0;
-      const unitPrice = parseFloat(discPriceInput.value) || 0;
+      const pageDisc = pageDiscounts[prod.category] || 0;
+
+      // Use discounted price if column exists and item is checked, else standard sell price
+      let unitPrice = parseFloat(priceInput.value) || 0;
+      if (discPriceInput && pageDisc > 0) {
+        unitPrice = parseFloat(discPriceInput.value) || 0;
+      }
+
       if (qty > 0) {
         selected.push({
           code: prod.code,
