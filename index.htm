@@ -1,78 +1,333 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cyber Protection Group - Quote Generator</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cyber Protection Group | Cyber Security Quote Calculator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <!-- html2pdf.js CDN for Client-Side PDF Generation -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
   <style>
     :root {
-      --cpg-navy: #0B192C;
-      --cpg-blue: #1E3E62;
-      --cpg-accent: #008BFF;
-      --cpg-bg: #F4F6F9;
-      --cpg-text: #333333;
-      --cpg-border: #E2E8F0;
-      --xero-blue: #00B0F0;
-      --danger: #E53E3E;
+      --cpg-navy-dark: #0a1128;
+      --cpg-navy-card: #101c3d;
+      --cpg-blue-primary: #0066ff;
+      --cpg-blue-glow: #00d2ff;
+      --cpg-accent-green: #00e676;
+      --cpg-text-main: #f0f4f8;
+      --cpg-text-muted: #94a3b8;
+      --cpg-border-color: rgba(0, 210, 255, 0.2);
+      --cpg-glass-bg: rgba(16, 28, 61, 0.85);
+      --cpg-font: 'Plus Jakarta Sans', sans-serif;
     }
 
-    * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
-    body { background-color: var(--cpg-bg); color: var(--cpg-text); margin: 0; padding: 20px; }
-    
-    .container { max-width: 1000px; margin: 0 auto; background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-    /* Step Navigation Header */
-    .step-header { display: flex; justify-content: space-between; border-bottom: 2px solid var(--cpg-border); padding-bottom: 15px; margin-bottom: 25px; flex-wrap: wrap; gap: 10px; }
-    .step-tab { font-weight: 600; color: #718096; padding: 8px 16px; border-radius: 4px; cursor: pointer; transition: all 0.2s; font-size: 0.9rem; }
-    .step-tab.active { background-color: var(--cpg-navy); color: #fff; }
+    body {
+      background-color: var(--cpg-navy-dark);
+      background-image: 
+        radial-gradient(circle at 10% 20%, rgba(0, 102, 255, 0.15) 0%, transparent 40%),
+        radial-gradient(circle at 90% 80%, rgba(0, 210, 255, 0.12) 0%, transparent 40%);
+      color: var(--cpg-text-main);
+      font-family: var(--cpg-font);
+      line-height: 1.6;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 16px;
+    }
 
-    /* Form Step Containers */
-    .form-step { display: none; }
-    .form-step.active { display: block; }
+    .quote-container {
+      width: 100%;
+      max-width: 950px;
+      background: var(--cpg-glass-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--cpg-border-color);
+      border-radius: 20px;
+      padding: 40px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+      position: relative;
+    }
 
-    h2 { color: var(--cpg-navy); margin-top: 0; }
-    p.desc { color: #718096; font-size: 0.95rem; margin-bottom: 20px; }
+    .quote-container::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--cpg-blue-primary), var(--cpg-blue-glow));
+    }
+
+    .brand-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(0, 210, 255, 0.1);
+      color: var(--cpg-blue-glow);
+      padding: 6px 14px;
+      border-radius: 50px;
+      font-size: 0.825rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+      border: 1px solid rgba(0, 210, 255, 0.3);
+    }
+
+    h1 {
+      font-size: 2rem;
+      font-weight: 800;
+      margin-bottom: 8px;
+      background: linear-gradient(135deg, #ffffff 30%, var(--cpg-blue-glow) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .subtitle {
+      color: var(--cpg-text-muted);
+      font-size: 0.95rem;
+      margin-bottom: 28px;
+    }
+
+    /* Dynamic Header Tab Indicators */
+    .progress-bar-wrap {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 32px;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 8px;
+    }
+
+    .step-indicator {
+      padding: 8px 16px;
+      border-radius: 20px;
+      background: var(--cpg-navy-dark);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      font-weight: 600;
+      font-size: 0.8rem;
+      color: var(--cpg-text-muted);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.3s ease;
+    }
+
+    .step-indicator.active {
+      border-color: var(--cpg-blue-glow);
+      background: var(--cpg-blue-primary);
+      color: #fff;
+      box-shadow: 0 0 12px rgba(0, 102, 255, 0.4);
+    }
+
+    /* Form Visibility */
+    .form-step {
+      display: none;
+    }
+
+    .form-step.active {
+      display: block;
+      animation: fadeIn 0.35s ease-in-out forwards;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .step-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 20px;
+      color: #fff;
+    }
 
     /* Inputs & Form Groups */
-    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-    .form-group { margin-bottom: 15px; }
-    .form-group label { display: block; font-weight: 600; margin-bottom: 5px; font-size: 0.85rem; color: #4A5568; }
-    .form-group input, .form-group textarea { width: 100%; padding: 10px; border: 1fr solid var(--cpg-border); border-radius: 4px; border: 1px solid #CBD5E0; font-size: 0.95rem; }
-    .form-group textarea { resize: vertical; height: 80px; }
-
-    /* Product Cards & Hover Tooltip */
-    .product-card { border: 1px solid var(--cpg-border); padding: 15px; border-radius: 6px; margin-bottom: 15px; background: #FAF5FF; position: relative; background: #fff; transition: box-shadow 0.2s; }
-    .product-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
-    .product-title { font-weight: 700; color: var(--cpg-navy); cursor: help; display: inline-block; position: relative; text-decoration: underline dotted #718096; }
-    
-    /* Hover Tooltip Popup (Columns K, L, M) */
-    .product-title .tooltip-text {
-      visibility: hidden; width: 320px; background-color: var(--cpg-navy); color: #fff; text-align: left; padding: 12px; border-radius: 6px;
-      position: absolute; z-index: 100; bottom: 125%; left: 0; opacity: 0; transition: opacity 0.3s; font-weight: 400; font-size: 0.8rem; line-height: 1.4; box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+      margin-bottom: 20px;
     }
-    .product-title:hover .tooltip-text { visibility: visible; opacity: 1; }
 
-    .price-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 10px; align-items: center; }
-    .read-only-price { background: #EDF2F7; padding: 8px 12px; border-radius: 4px; font-size: 0.9rem; color: #4A5568; border: 1px solid #CBD5E0; }
+    .field-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 14px;
+    }
 
-    /* Discount Controls */
-    .discount-bar { background: #EBF8FF; border: 1px solid #BEE3F8; padding: 15px; border-radius: 6px; margin-top: 25px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
-    .radio-group { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-    .radio-group label { font-size: 0.85rem; font-weight: 600; cursor: pointer; }
+    label {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--cpg-text-muted);
+    }
 
-    /* Button Controls */
-    .btn-row { display: flex; justify-content: space-between; margin-top: 25px; }
-    button.btn { padding: 10px 24px; border: none; border-radius: 4px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
-    button.btn-next { background: var(--cpg-navy); color: #fff; }
-    button.btn-next:hover { background: var(--cpg-blue); }
-    button.btn-prev { background: #E2E8F0; color: #4A5568; }
-    button.btn-prev:hover { background: #CBD5E0; }
+    input[type="text"], input[type="number"], textarea, select {
+      width: 100%;
+      background: rgba(10, 17, 40, 0.8);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 10px;
+      padding: 10px 14px;
+      color: #fff;
+      font-family: inherit;
+      font-size: 0.95rem;
+      outline: none;
+      transition: all 0.3s ease;
+    }
 
-    /* ========================================================= */
-    /* EXACT XERO QUOTE PREVIEW / PDF TEMPLATE STYLES */
-    /* ========================================================= */
+    textarea { height: 80px; resize: vertical; }
+
+    input:focus, textarea:focus, select:focus {
+      border-color: var(--cpg-blue-glow);
+      box-shadow: 0 0 0 3px rgba(0, 210, 255, 0.2);
+    }
+
+    /* Product Cards & Tooltips */
+    .product-card {
+      background: rgba(10, 17, 40, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 16px;
+      border-radius: 12px;
+      margin-bottom: 16px;
+      position: relative;
+      transition: all 0.25s ease;
+    }
+
+    .product-card:hover {
+      border-color: rgba(0, 210, 255, 0.4);
+      background: rgba(16, 28, 61, 0.9);
+    }
+
+    .product-title {
+      font-weight: 700;
+      color: var(--cpg-blue-glow);
+      cursor: help;
+      display: inline-block;
+      position: relative;
+      text-decoration: underline dotted var(--cpg-text-muted);
+    }
+
+    .product-title .tooltip-text {
+      visibility: hidden;
+      width: 320px;
+      background-color: var(--cpg-navy-card);
+      color: #fff;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid var(--cpg-blue-glow);
+      position: absolute;
+      z-index: 100;
+      bottom: 125%;
+      left: 0;
+      opacity: 0;
+      transition: opacity 0.3s;
+      font-weight: 400;
+      font-size: 0.8rem;
+      line-height: 1.4;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+    }
+
+    .product-title:hover .tooltip-text {
+      visibility: visible;
+      opacity: 1;
+    }
+
+    .price-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px;
+      margin-top: 12px;
+      align-items: center;
+    }
+
+    .read-only-price {
+      background: rgba(255, 255, 255, 0.05);
+      padding: 10px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      color: var(--cpg-text-muted);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    /* Discount Control Bars */
+    .discount-bar {
+      background: rgba(0, 102, 255, 0.1);
+      border: 1px solid rgba(0, 210, 255, 0.3);
+      padding: 14px 18px;
+      border-radius: 10px;
+      margin-top: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .radio-group {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .radio-group label {
+      font-size: 0.85rem;
+      color: var(--cpg-text-main);
+      cursor: pointer;
+    }
+
+    /* Buttons */
+    .btn-group {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      margin-top: 28px;
+    }
+
+    .btn {
+      padding: 12px 24px;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      cursor: pointer;
+      border: none;
+      transition: all 0.25s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--cpg-blue-primary), #0044cc);
+      color: #fff;
+      box-shadow: 0 4px 15px rgba(0, 102, 255, 0.3);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0, 210, 255, 0.5);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--cpg-text-muted);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.15);
+      color: #fff;
+    }
+
+    /* XERO PRINT / PREVIEW TEMPLATE STYLES */
     #xeroQuoteTemplate {
       background: #ffffff;
       padding: 40px 50px;
@@ -80,57 +335,61 @@
       color: #000000;
       font-size: 9.5pt;
       line-height: 1.3;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-      margin: 20px 0;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+      margin-top: 20px;
     }
     .xero-header-notice { font-size: 7.5pt; color: #333; margin-bottom: 25px; }
     .xero-top-grid { display: grid; grid-template-columns: 1fr 1fr; margin-bottom: 30px; }
-    .xero-title { font-size: 26pt; font-weight: bold; color: #000; margin: 0 0 15px 0; tracking: 1px; }
-    .xero-client-details { font-size: 9.5pt; line-height: 1.35; }
+    .xero-title { font-size: 26pt; font-weight: bold; color: #000; margin: 0 0 15px 0; }
+    .xero-client-details { font-size: 9.5pt; line-height: 1.35; color: #000; }
     .xero-meta-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-    .xero-meta-table td { padding: 2px 0; font-size: 9.5pt; }
+    .xero-meta-table td { padding: 2px 0; font-size: 9.5pt; color: #000; }
     .xero-meta-table td.label { font-weight: bold; width: 110px; }
 
     .xero-items-table { width: 100%; border-collapse: collapse; margin-top: 15px; margin-bottom: 20px; }
-    .xero-items-table th { border-bottom: 1px solid #000; text-align: left; padding: 6px 4px; font-weight: bold; font-size: 9.5pt; }
+    .xero-items-table th { border-bottom: 1px solid #000; text-align: left; padding: 6px 4px; font-weight: bold; font-size: 9.5pt; color: #000; }
     .xero-items-table th.num { text-align: right; }
-    .xero-items-table td { border-bottom: 1px solid #E0E0E0; padding: 8px 4px; vertical-align: top; font-size: 9pt; }
+    .xero-items-table td { border-bottom: 1px solid #E0E0E0; padding: 8px 4px; vertical-align: top; font-size: 9pt; color: #000; }
     .xero-items-table td.num { text-align: right; }
 
     .xero-totals-container { display: flex; justify-content: flex-end; margin-top: 10px; margin-bottom: 30px; }
     .xero-totals-table { width: 280px; border-collapse: collapse; }
-    .xero-totals-table td { padding: 4px 0; font-size: 9.5pt; }
+    .xero-totals-table td { padding: 4px 0; font-size: 9.5pt; color: #000; }
     .xero-totals-table td.num { text-align: right; }
     .xero-totals-table tr.grand-total td { font-weight: bold; border-top: 1px solid #000; border-bottom: 2px solid #000; padding: 6px 0; font-size: 10.5pt; }
 
-    .xero-terms { font-size: 9pt; margin-top: 20px; }
+    .xero-terms { font-size: 9pt; margin-top: 20px; color: #000; }
     .xero-terms-title { font-weight: bold; margin-bottom: 3px; }
   </style>
 </head>
 <body>
 
-<div class="container">
-  <!-- Dynamic Category Navigation Tabs -->
-  <div class="step-header" id="stepIndicatorHeader"></div>
+<div class="quote-container">
+  <div class="brand-badge">🛡️ Cyber Protection Group</div>
+  <h1>Interactive Security Quote Generator</h1>
+  <p class="subtitle">Select licenses and generate Xero-formatted proposals instantly[cite: 1, 2].</p>
 
-  <!-- Form Wizard Container -->
-  <form id="quoteWizardForm">
-    <!-- PAGE 1: CUSTOMER DETAILS -->
+  <!-- Step Tabs Indicator -->
+  <div class="progress-bar-wrap" id="stepIndicatorHeader"></div>
+
+  <form id="quoteWizardForm" onsubmit="return false;">
+    
+    <!-- PAGE 1: CLIENT METADATA -->
     <div class="form-step active" id="step-1">
-      <h2>Client Information</h2>
-      <p class="desc">Enter client and quote metadata directly matching the Xero template specifications.</p>
+      <div class="step-title">1. Client & Proposal Details</div>
 
       <div class="grid-2">
         <div>
-          <div class="form-group">
+          <div class="field-group">
             <label>Company Name *</label>
             <input type="text" id="custCompany" value="South Essex Sealed Units LTD" required>
           </div>
-          <div class="form-group">
+          <div class="field-group">
             <label>Attention (Contact Name)</label>
             <input type="text" id="custAttention" value="Carl Hicks">
           </div>
-          <div class="form-group">
+          <div class="field-group">
             <label>Company Address</label>
             <textarea id="custAddress">UNIT 2 BEAVER ROAD
 HAINAULT BUSINESS PARK
@@ -140,62 +399,64 @@ IG6 3UT
 UNITED KINGDOM</textarea>
           </div>
         </div>
+
         <div>
-          <div class="form-group">
+          <div class="field-group">
             <label>Quote Number *</label>
             <input type="text" id="quoteNumber" value="QU-1006" required>
           </div>
-          <div class="form-group">
+          <div class="field-group">
             <label>Reference</label>
             <input type="text" id="quoteReference" value="Reference: MBCH-01">
           </div>
-          <div class="form-group">
+          <div class="field-group">
             <label>Quote Date</label>
             <input type="text" id="quoteDate" value="12 Jun 2025">
           </div>
-          <div class="form-group">
+          <div class="field-group">
             <label>Expiry Date</label>
             <input type="text" id="quoteExpiry" value="26 Jun 2025">
           </div>
         </div>
       </div>
-      <div class="btn-row" style="justify-content: flex-end;">
-        <button type="button" class="btn btn-next" onclick="nextStep(1)">Next Page &rarr;</button>
+
+      <div class="btn-group" style="justify-content: flex-end;">
+        <button type="button" class="btn btn-primary" onclick="nextStep(1)">Next Step →</button>
       </div>
     </div>
 
-    <!-- DYNAMIC CATEGORY PAGES (2 to N) WILL BE INJECTED HERE BY SCRIPT -->
+    <!-- DYNAMIC PRODUCT CATEGORY PAGES (CONTAINER) -->
     <div id="dynamicCategoryPages"></div>
 
-    <!-- FINAL SUMMARY & GLOBAL DISCOUNT PAGE -->
+    <!-- SUMMARY & GLOBAL DISCOUNT PAGE -->
     <div class="form-step" id="step-summary">
-      <h2>Quote Summary & Final Options</h2>
-      <p class="desc">Review selected products across all categories. Apply a global discount if no page discounts were selected.</p>
-      
+      <div class="step-title">Quote Summary & Options</div>
+      <p class="subtitle">Review selected security products across all categories[cite: 2].</p>
+
       <div id="summaryItemsList"></div>
 
       <div class="discount-bar" id="globalDiscountBar" style="display:none;">
-        <span style="font-weight:bold; font-size:0.9rem;">Global Discount (All Items):</span>
+        <span style="font-weight:bold; font-size:0.85rem;">Apply Global Discount (All Items):</span>
         <div class="radio-group" id="globalDiscountRadios"></div>
       </div>
 
-      <div class="btn-row">
-        <button type="button" class="btn btn-prev" onclick="prevStep('summary')">&larr; Back</button>
-        <button type="button" class="btn btn-next" onclick="renderXeroPreview()">Generate & Preview Quote &rarr;</button>
+      <div class="btn-group">
+        <button type="button" class="btn btn-secondary" onclick="prevStep('summary')">← Back</button>
+        <button type="button" class="btn btn-primary" onclick="renderXeroPreview()">Preview Xero Quote ✨</button>
       </div>
     </div>
 
-    <!-- FINAL XERO PREVIEW & DOWNLOAD PAGE -->
+    <!-- PREVIEW & DOWNLOAD XERO PDF PAGE -->
     <div class="form-step" id="step-preview">
-      <div class="btn-row" style="margin-bottom: 20px; margin-top: 0;">
-        <button type="button" class="btn btn-prev" onclick="goToStepId('step-summary')">&larr; Edit Selections</button>
-        <button type="button" class="btn btn-next" style="background-color: #28a745;" onclick="downloadPDF()">Download PDF Quote</button>
+      <div class="btn-group" style="margin-bottom: 20px; margin-top: 0;">
+        <button type="button" class="btn btn-secondary" onclick="goToStepId('step-summary')">← Edit Selections</button>
+        <button type="button" class="btn btn-primary" style="background: linear-gradient(135deg, #00e676, #00b0ff);" onclick="downloadPDF()">Download PDF Quote 📄</button>
       </div>
 
       <!-- XERO TEMPLATE PREVIEW CONTAINER -->
       <div id="xeroQuoteTemplate">
         <div class="xero-header-notice">
-          Company Registration No: 15161917. Registered Office: Attention: Matthew Bell, 85 Great Portland Street, First Floor, London, W1W 7LT, United Kingdom.
+          Company Registration No: 15161917. Registered Office: Attention: Matthew Bell, 85 Great Portland Street, First Floor, London, W1W 7LT, United Kingdom.[cite: 1]
         </div>
 
         <div class="xero-top-grid">
@@ -213,7 +474,7 @@ UNITED KINGDOM</textarea>
               <tr><td class="label">Reference</td><td id="pdfRef">Reference: MBCH-01</td></tr>
               <tr><td class="label">VAT Number</td><td>485894422</td></tr>
             </table>
-            <div style="margin-top: 20px; font-size: 9pt;">
+            <div style="margin-top: 20px; font-size: 9pt; color: #000;">
               <strong>Cyber Protection Group</strong><br>
               Attention: Matthew Bell<br>
               85 Great Portland Street<br>
@@ -225,7 +486,7 @@ UNITED KINGDOM</textarea>
           </div>
         </div>
 
-        <div style="margin-bottom: 15px; font-weight: bold; font-size: 9.5pt;" id="pdfSubjectLine">
+        <div style="margin-bottom: 15px; font-weight: bold; font-size: 9.5pt; color: #000;" id="pdfSubjectLine">
           Cyber Security Protection<br>
           <span style="font-weight: normal; font-size: 8.5pt; color: #444;" id="pdfSubServices">
             Computers, Server, Mobile Phones, Microsoft Office Security, External & Internal Scanning, Dark Web Monitoring, Router and Network Switch Monitoring, DNS and Email Protection with Backup; Xero Accounts Backup[cite: 1]
@@ -275,13 +536,14 @@ UNITED KINGDOM</textarea>
         </div>
       </div>
     </div>
+
   </form>
 </div>
 
 <script>
 /**
- * Master Product Matrix compiled from row 9 of the "master" tab in CPG Products2
- * Deduplicated by Cyber Protection Group Product Code (Column E), keeping highest price version.
+ * Master Product Catalog from "master" tab in CPG Products2 spreadsheet[cite: 2]
+ * Highest price version used for duplicate codes; null buy prices set to 'n/a' and locked[cite: 2].
  */
 const MASTER_PRODUCTS = [
   {
@@ -446,7 +708,7 @@ const MASTER_PRODUCTS = [
     code: "CX-03",
     name: "Broadband Routers & Firewalls",
     desc: "(Draytek Vigor2866ac, Netgear GS7224T Smart Switch, and Netgear ProSafe GS110TP Enterprise-grade network hardware with co-managed support and real-time reporting on intrusion attempts. Behavioral AI monitors all processes for malicious activity, detecting thousands of malware variants. Our solution offers advanced threat visibility, root cause analysis, and rapid remediation with the ability to reverse malicious actions instantly.",
-    buyPrice: null, // Missing price test rule -> set n/a & disabled
+    buyPrice: null, // Null price item[cite: 2]
     sellPrice: 8.00,
     colK: "Functions: Managed Firewall & Network Hardware AI Monitoring",
     colL: "Behavioral AI detects hardware-level intrusions",
@@ -457,19 +719,15 @@ const MASTER_PRODUCTS = [
 // App State Management
 let categories = [];
 let productState = {};
-let pageDiscounts = {}; // Page index -> discount %
-let currentStepIndex = 1;
+let pageDiscounts = {}; 
 
-// Initialize Application Wizard
 document.addEventListener('DOMContentLoaded', () => {
-  // Extract Unique Categories from Master Products Matrix[cite: 2]
   categories = [...new Set(MASTER_PRODUCTS.map(p => p.category))];
   
-  // Initialize Product State Map
   MASTER_PRODUCTS.forEach(p => {
     productState[p.code] = {
       ...p,
-      qty: 0, // Defaults to 0[cite: 2]
+      qty: 0,
       userSellPrice: p.sellPrice
     };
   });
@@ -479,22 +737,22 @@ document.addEventListener('DOMContentLoaded', () => {
   setupGlobalDiscountRadios();
 });
 
-// Render Dynamic Step Header Navigation Bar
+// Render Header Navigation Tabs
 function renderHeaderTabs() {
   const container = document.getElementById('stepIndicatorHeader');
-  let html = `<div class="step-tab active" id="tab-1" onclick="goToStepId('step-1')">1. Client Info</div>`;
+  let html = `<div class="step-indicator active" id="tab-1" onclick="goToStepId('step-1')">1. Client Info</div>`;
   
   categories.forEach((cat, idx) => {
     const stepNum = idx + 2;
-    html += `<div class="step-tab" id="tab-${stepNum}" onclick="goToStepId('step-cat-${idx}')">${stepNum}. ${cat}</div>`;
+    html += `<div class="step-indicator" id="tab-${stepNum}" onclick="goToStepId('step-cat-${idx}')">${stepNum}. ${cat}</div>`;
   });
 
   const lastStepNum = categories.length + 2;
-  html += `<div class="step-tab" id="tab-summary" onclick="goToStepId('step-summary')">${lastStepNum}. Summary</div>`;
+  html += `<div class="step-indicator" id="tab-summary" onclick="goToStepId('step-summary')">${lastStepNum}. Summary</div>`;
   container.innerHTML = html;
 }
 
-// Render Sequential Category Pages dynamically (Columns A-M Logic)[cite: 2]
+// Render Dynamic Product Pages
 function renderCategoryPages() {
   const container = document.getElementById('dynamicCategoryPages');
   let html = '';
@@ -505,8 +763,8 @@ function renderCategoryPages() {
 
     html += `
       <div class="form-step" id="${pageStepId}">
-        <h2>Category: ${cat}</h2>
-        <p class="desc">${productsInCat[0]?.categoryDesc || 'Select licenses and customize baseline pricing.'}</p>
+        <div class="step-title">Category: ${cat}</div>
+        <p class="subtitle">${productsInCat[0]?.categoryDesc || 'Configure quantities and customized pricing.'}</p>
         
         <div class="product-list">`;
 
@@ -526,34 +784,34 @@ function renderCategoryPages() {
               • ${p.colM}
             </div>
           </div>
-          <div style="font-size: 0.85rem; color: #4A5568; margin: 6px 0;">${p.desc}</div>
+          <div style="font-size: 0.85rem; color: var(--cpg-text-muted); margin: 6px 0;">${p.desc}</div>
           
           <div class="price-grid">
             <div>
-              <label style="font-size:0.75rem; font-weight:bold; color:#718096; display:block;">QTY REQUIRED</label>
+              <label>QTY REQUIRED</label>
               <input type="number" min="0" value="0" ${disabledAttr} 
                 id="qty_${p.code}" 
-                onchange="updateProductQty('${p.code}', this.value)" style="padding: 6px; width: 100%;">
+                onchange="updateProductQty('${p.code}', this.value)">
             </div>
             <div>
-              <label style="font-size:0.75rem; font-weight:bold; color:#718096; display:block;">CPG BUY PRICE (READ-ONLY)</label>
+              <label>BUY PRICE (READ-ONLY)</label>
               <div class="read-only-price">${buyPriceText}</div>
             </div>
             <div>
-              <label style="font-size:0.75rem; font-weight:bold; color:#718096; display:block;">CPG SELL PRICE (£)</label>
+              <label>SELL PRICE (£)</label>
               <input type="number" step="0.01" value="${p.sellPrice.toFixed(2)}" ${disabledAttr}
                 id="price_${p.code}" 
-                onchange="validateAndSetSellPrice('${p.code}', this.value)" style="padding: 6px; width: 100%;">
+                onchange="validateAndSetSellPrice('${p.code}', this.value)">
             </div>
           </div>
         </div>`;
     });
 
-    // Page-Level Discount Radio Control Bar (0, 10, 20, 25, 30, 40, 50%)[cite: 2]
+    // Discount Bar (0 to 50%)[cite: 2]
     html += `
         </div>
         <div class="discount-bar">
-          <span style="font-weight:bold; font-size:0.85rem;">Apply Category Discount (${cat} Only):</span>
+          <span style="font-weight:bold; font-size:0.85rem;">Category Discount (${cat}):</span>
           <div class="radio-group">`;
     
     [0, 10, 20, 25, 30, 40, 50].forEach(disc => {
@@ -569,9 +827,9 @@ function renderCategoryPages() {
           </div>
         </div>
 
-        <div class="btn-row">
-          <button type="button" class="btn btn-prev" onclick="prevStep(${catIdx + 1})">&larr; Previous</button>
-          <button type="button" class="btn btn-next" onclick="nextStep(${catIdx + 2})">Next Category &rarr;</button>
+        <div class="btn-group">
+          <button type="button" class="btn btn-secondary" onclick="prevStep(${catIdx + 1})">← Previous</button>
+          <button type="button" class="btn btn-primary" onclick="nextStep(${catIdx + 2})">Next Category →</button>
         </div>
       </div>`;
   });
@@ -579,15 +837,14 @@ function renderCategoryPages() {
   container.innerHTML = html;
 }
 
-// Discount & Manual Price Validation Logic (50% Rule Cap)[cite: 2]
+// Discount & Max 50% Cap Validation[cite: 2]
 function validateAndSetSellPrice(code, newValue) {
   const val = parseFloat(newValue);
   const origPrice = productState[code].sellPrice;
-  const minAllowed = origPrice * 0.5; // Max 50% discount cap[cite: 2]
-  const maxAllowed = origPrice * 1.5;
+  const minAllowed = origPrice * 0.5; // 50% Cap[cite: 2]
 
   if (isNaN(val) || val < minAllowed) {
-    alert(`Warning: You cannot give more than a 50% discount on this item (Minimum allowed price: £${minAllowed.toFixed(2)}).`);
+    alert(`Warning: Maximum discount allowed is 50% (Minimum sell price: £${minAllowed.toFixed(2)}).`);
     document.getElementById(`price_${code}`).value = origPrice.toFixed(2);
     productState[code].userSellPrice = origPrice;
   } else {
@@ -603,15 +860,14 @@ function setPageDiscount(catIdx, discountPercent) {
   pageDiscounts[catIdx] = discountPercent;
 }
 
-// Navigation Handlers
+// Navigation Logic
 function goToStepId(stepId) {
   document.querySelectorAll('.form-step').forEach(el => el.classList.remove('active'));
-  document.querySelectorAll('.step-tab').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.step-indicator').forEach(el => el.classList.remove('active'));
   
   const target = document.getElementById(stepId);
   if (target) target.classList.add('active');
 
-  // Highlight tab
   if (stepId === 'step-1') document.getElementById('tab-1')?.classList.add('active');
   else if (stepId === 'step-summary') document.getElementById('tab-summary')?.classList.add('active');
   else if (stepId.startsWith('step-cat-')) {
@@ -648,7 +904,7 @@ function prevStep(currentStepNumber) {
   }
 }
 
-// Summary Page Logic & Global Discount Option[cite: 2]
+// Summary Page Rendering
 function renderSummaryPage() {
   const summaryContainer = document.getElementById('summaryItemsList');
   const globalDiscountBar = document.getElementById('globalDiscountBar');
@@ -656,20 +912,20 @@ function renderSummaryPage() {
   let selectedItems = Object.values(productState).filter(p => p.qty > 0);
 
   if (selectedItems.length === 0) {
-    summaryContainer.innerHTML = `<div style="padding: 20px; background: #FFF5F5; border: 1px solid #FEB2B2; border-radius: 4px; color: #C53030;">No products selected. Please return to category pages to add quantity.</div>`;
+    summaryContainer.innerHTML = `<div style="padding: 20px; background: rgba(229,62,62,0.1); border: 1px solid #E53E3E; border-radius: 8px; color: #FC8181;">No products selected. Please select item quantities from the category tabs.</div>`;
     globalDiscountBar.style.display = "none";
     return;
   }
 
   let html = `<table style="width:100%; border-collapse:collapse; margin-bottom:20px;">
     <thead>
-      <tr style="border-bottom:2px solid #CBD5E0; text-align:left;">
-        <th style="padding:8px;">Product</th>
-        <th style="padding:8px;">Category</th>
-        <th style="padding:8px; text-align:right;">Qty</th>
-        <th style="padding:8px; text-align:right;">Unit Price</th>
-        <th style="padding:8px; text-align:right;">Discount</th>
-        <th style="padding:8px; text-align:right;">Total</th>
+      <tr style="border-bottom:2px solid var(--cpg-border-color); text-align:left;">
+        <th style="padding:10px;">Product</th>
+        <th style="padding:10px;">Category</th>
+        <th style="padding:10px; text-align:right;">Qty</th>
+        <th style="padding:10px; text-align:right;">Unit Price</th>
+        <th style="padding:10px; text-align:right;">Discount</th>
+        <th style="padding:10px; text-align:right;">Total</th>
       </tr>
     </thead>
     <tbody>`;
@@ -687,24 +943,23 @@ function renderSummaryPage() {
     grandTotal += lineTotal;
 
     html += `
-      <tr style="border-bottom:1px solid #E2E8F0;">
-        <td style="padding:8px; font-weight:bold;">${item.name}</td>
-        <td style="padding:8px;">${item.category}</td>
-        <td style="padding:8px; text-align:right;">${item.qty}</td>
-        <td style="padding:8px; text-align:right;">£${item.userSellPrice.toFixed(2)}</td>
-        <td style="padding:8px; text-align:right;">${pageDisc}%</td>
-        <td style="padding:8px; text-align:right; font-weight:bold;">£${lineTotal.toFixed(2)}</td>
+      <tr style="border-bottom:1px solid rgba(255,255,255,0.08);">
+        <td style="padding:10px; font-weight:bold;">${item.name}</td>
+        <td style="padding:10px; color:var(--cpg-text-muted);">${item.category}</td>
+        <td style="padding:10px; text-align:right;">${item.qty}</td>
+        <td style="padding:10px; text-align:right;">£${item.userSellPrice.toFixed(2)}</td>
+        <td style="padding:10px; text-align:right;">${pageDisc}%</td>
+        <td style="padding:10px; text-align:right; font-weight:bold; color:var(--cpg-blue-glow);">£${lineTotal.toFixed(2)}</td>
       </tr>`;
   });
 
   html += `</tbody></table>
-    <div style="text-align:right; font-size:1.2rem; font-weight:bold; color:var(--cpg-navy);">
-      Estimated Subtotal: £${grandTotal.toFixed(2)}
+    <div style="text-align:right; font-size:1.25rem; font-weight:800; color:var(--cpg-accent-green);">
+      Estimated Monthly Total: £${grandTotal.toFixed(2)}
     </div>`;
 
   summaryContainer.innerHTML = html;
 
-  // Show global discount options ONLY if NO page discounts were selected[cite: 2]
   if (!anyPageDiscountApplied) {
     globalDiscountBar.style.display = "flex";
   } else {
@@ -733,25 +988,22 @@ function applyGlobalDiscount(discPercent) {
   renderSummaryPage();
 }
 
-// Generate & Render Precise Xero Quote Template[cite: 1]
+// Render Xero Template Preview[cite: 1]
 function renderXeroPreview() {
   const company = document.getElementById('custCompany').value || "Client Company";
   const attention = document.getElementById('custAttention').value;
   const address = document.getElementById('custAddress').value;
 
-  // Render Address block
   let clientHtml = `<strong>${company}</strong><br>`;
   if (attention) clientHtml += `Attention: ${attention}<br>`;
   clientHtml += address.replace(/\n/g, '<br>');
   document.getElementById('pdfClientDetails').innerHTML = clientHtml;
 
-  // Render Meta fields[cite: 1]
   document.getElementById('pdfDate').innerText = document.getElementById('quoteDate').value;
   document.getElementById('pdfExpiry').innerText = document.getElementById('quoteExpiry').value;
   document.getElementById('pdfQuoteNum').innerText = document.getElementById('quoteNumber').value;
   document.getElementById('pdfRef').innerText = document.getElementById('quoteReference').value;
 
-  // Build Itemized Line Rows
   const tbody = document.getElementById('pdfTableBody');
   tbody.innerHTML = '';
 
@@ -788,7 +1040,7 @@ function renderXeroPreview() {
   goToStepId('step-preview');
 }
 
-// PDF Download Trigger [Customer Name + Quote Number.pdf][cite: 1, 2]
+// Export named PDF file[cite: 1, 2]
 function downloadPDF() {
   const companyName = document.getElementById('custCompany').value.trim();
   const quoteNum = document.getElementById('quoteNumber').value.trim();
