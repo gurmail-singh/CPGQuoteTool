@@ -3,853 +3,804 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cyber Protection Group - Interactive Quote Tool</title>
+  <title>Cyber Protection Group - Quote Generator</title>
+  <!-- html2pdf.js CDN for Client-Side PDF Generation -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <style>
     :root {
-      --cpg-navy: #0a1128;
-      --cpg-dark-blue: #001f54;
-      --cpg-blue: #034078;
-      --cpg-cyan: #1282a2;
-      --cpg-accent: #00d4ff;
-      --cpg-light: #f4f7f6;
-      --cpg-card-bg: #0d1b2a;
-      --cpg-text-light: #e0e6ed;
-      --cpg-text-muted: #8892b0;
-      --cpg-border: #1e293b;
-      --cpg-danger: #ff4d4d;
+      --cpg-navy: #0B192C;
+      --cpg-blue: #1E3E62;
+      --cpg-accent: #008BFF;
+      --cpg-bg: #F4F6F9;
+      --cpg-text: #333333;
+      --cpg-border: #E2E8F0;
+      --xero-blue: #00B0F0;
+      --danger: #E53E3E;
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    body { background-color: var(--cpg-bg); color: var(--cpg-text); margin: 0; padding: 20px; }
+    
+    .container { max-width: 1000px; margin: 0 auto; background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+
+    /* Step Navigation Header */
+    .step-header { display: flex; justify-content: space-between; border-bottom: 2px solid var(--cpg-border); padding-bottom: 15px; margin-bottom: 25px; flex-wrap: wrap; gap: 10px; }
+    .step-tab { font-weight: 600; color: #718096; padding: 8px 16px; border-radius: 4px; cursor: pointer; transition: all 0.2s; font-size: 0.9rem; }
+    .step-tab.active { background-color: var(--cpg-navy); color: #fff; }
+
+    /* Form Step Containers */
+    .form-step { display: none; }
+    .form-step.active { display: block; }
+
+    h2 { color: var(--cpg-navy); margin-top: 0; }
+    p.desc { color: #718096; font-size: 0.95rem; margin-bottom: 20px; }
+
+    /* Inputs & Form Groups */
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .form-group { margin-bottom: 15px; }
+    .form-group label { display: block; font-weight: 600; margin-bottom: 5px; font-size: 0.85rem; color: #4A5568; }
+    .form-group input, .form-group textarea { width: 100%; padding: 10px; border: 1fr solid var(--cpg-border); border-radius: 4px; border: 1px solid #CBD5E0; font-size: 0.95rem; }
+    .form-group textarea { resize: vertical; height: 80px; }
+
+    /* Product Cards & Hover Tooltip */
+    .product-card { border: 1px solid var(--cpg-border); padding: 15px; border-radius: 6px; margin-bottom: 15px; background: #FAF5FF; position: relative; background: #fff; transition: box-shadow 0.2s; }
+    .product-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+    .product-title { font-weight: 700; color: var(--cpg-navy); cursor: help; display: inline-block; position: relative; text-decoration: underline dotted #718096; }
+    
+    /* Hover Tooltip Popup (Columns K, L, M) */
+    .product-title .tooltip-text {
+      visibility: hidden; width: 320px; background-color: var(--cpg-navy); color: #fff; text-align: left; padding: 12px; border-radius: 6px;
+      position: absolute; z-index: 100; bottom: 125%; left: 0; opacity: 0; transition: opacity 0.3s; font-weight: 400; font-size: 0.8rem; line-height: 1.4; box-shadow: 0 4px 12px rgba(0,0,0,0.2);
     }
+    .product-title:hover .tooltip-text { visibility: visible; opacity: 1; }
 
-    body {
-      background: linear-gradient(135deg, var(--cpg-navy) 0%, #020c1b 100%);
-      color: var(--cpg-text-light);
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 20px;
+    .price-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 10px; align-items: center; }
+    .read-only-price { background: #EDF2F7; padding: 8px 12px; border-radius: 4px; font-size: 0.9rem; color: #4A5568; border: 1px solid #CBD5E0; }
+
+    /* Discount Controls */
+    .discount-bar { background: #EBF8FF; border: 1px solid #BEE3F8; padding: 15px; border-radius: 6px; margin-top: 25px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+    .radio-group { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+    .radio-group label { font-size: 0.85rem; font-weight: 600; cursor: pointer; }
+
+    /* Button Controls */
+    .btn-row { display: flex; justify-content: space-between; margin-top: 25px; }
+    button.btn { padding: 10px 24px; border: none; border-radius: 4px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
+    button.btn-next { background: var(--cpg-navy); color: #fff; }
+    button.btn-next:hover { background: var(--cpg-blue); }
+    button.btn-prev { background: #E2E8F0; color: #4A5568; }
+    button.btn-prev:hover { background: #CBD5E0; }
+
+    /* ========================================================= */
+    /* EXACT XERO QUOTE PREVIEW / PDF TEMPLATE STYLES */
+    /* ========================================================= */
+    #xeroQuoteTemplate {
+      background: #ffffff;
+      padding: 40px 50px;
+      font-family: Arial, Helvetica, sans-serif;
+      color: #000000;
+      font-size: 9.5pt;
+      line-height: 1.3;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      margin: 20px 0;
     }
+    .xero-header-notice { font-size: 7.5pt; color: #333; margin-bottom: 25px; }
+    .xero-top-grid { display: grid; grid-template-columns: 1fr 1fr; margin-bottom: 30px; }
+    .xero-title { font-size: 26pt; font-weight: bold; color: #000; margin: 0 0 15px 0; tracking: 1px; }
+    .xero-client-details { font-size: 9.5pt; line-height: 1.35; }
+    .xero-meta-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    .xero-meta-table td { padding: 2px 0; font-size: 9.5pt; }
+    .xero-meta-table td.label { font-weight: bold; width: 110px; }
 
-    .app-container {
-      width: 100%;
-      max-width: 1150px;
-      background: rgba(13, 27, 42, 0.95);
-      border: 1px solid var(--cpg-border);
-      border-radius: 12px;
-      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
-      backdrop-filter: blur(10px);
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-    }
+    .xero-items-table { width: 100%; border-collapse: collapse; margin-top: 15px; margin-bottom: 20px; }
+    .xero-items-table th { border-bottom: 1px solid #000; text-align: left; padding: 6px 4px; font-weight: bold; font-size: 9.5pt; }
+    .xero-items-table th.num { text-align: right; }
+    .xero-items-table td { border-bottom: 1px solid #E0E0E0; padding: 8px 4px; vertical-align: top; font-size: 9pt; }
+    .xero-items-table td.num { text-align: right; }
 
-    .app-header {
-      background: var(--cpg-navy);
-      color: #fff;
-      padding: 20px 30px;
-      border-bottom: 2px solid var(--cpg-cyan);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
+    .xero-totals-container { display: flex; justify-content: flex-end; margin-top: 10px; margin-bottom: 30px; }
+    .xero-totals-table { width: 280px; border-collapse: collapse; }
+    .xero-totals-table td { padding: 4px 0; font-size: 9.5pt; }
+    .xero-totals-table td.num { text-align: right; }
+    .xero-totals-table tr.grand-total td { font-weight: bold; border-top: 1px solid #000; border-bottom: 2px solid #000; padding: 6px 0; font-size: 10.5pt; }
 
-    .app-header h1 {
-      font-size: 1.5rem;
-      font-weight: 700;
-    }
-
-    .app-header h1 span {
-      color: var(--cpg-accent);
-    }
-
-    /* Clickable Top Navigation Bar */
-    .progress-bar {
-      display: flex;
-      background: #00122e;
-      padding: 10px 15px;
-      gap: 8px;
-      overflow-x: auto;
-      border-bottom: 1px solid var(--cpg-border);
-    }
-
-    .step-node {
-      flex: 1;
-      text-align: center;
-      padding: 10px 14px;
-      font-size: 0.82rem;
-      font-weight: 600;
-      color: var(--cpg-text-muted);
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid rgba(255, 255, 255, 0.05);
-      border-radius: 6px;
-      white-space: nowrap;
-      cursor: pointer;
-      transition: all 0.25 ease;
-      user-select: none;
-    }
-
-    .step-node:hover {
-      background: rgba(18, 130, 162, 0.2);
-      color: #fff;
-    }
-
-    .step-node.active {
-      color: #fff;
-      background: var(--cpg-cyan);
-      border-color: var(--cpg-accent);
-      box-shadow: 0 0 12px rgba(0, 214, 255, 0.3);
-    }
-
-    .step-node.completed {
-      color: var(--cpg-accent);
-    }
-
-    .page-content {
-      padding: 30px;
-      display: none;
-    }
-
-    .page-content.active {
-      display: block;
-      animation: fadeIn 0.3s ease-in-out forwards;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(6px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    .section-title {
-      font-size: 1.3rem;
-      color: #fff;
-      margin-bottom: 6px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom: 1px solid var(--cpg-border);
-      padding-bottom: 10px;
-    }
-
-    .section-desc {
-      font-size: 0.88rem;
-      color: var(--cpg-text-muted);
-      margin-bottom: 20px;
-      margin-top: 8px;
-    }
-
-    /* Form Grid for Customer Info */
-    .form-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      gap: 18px;
-      margin-bottom: 25px;
-    }
-
-    .form-group {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .form-group label {
-      font-size: 0.85rem;
-      font-weight: 600;
-      color: var(--cpg-text-light);
-    }
-
-    input[type="text"], input[type="tel"], input[type="number"], select {
-      width: 100%;
-      padding: 10px 14px;
-      background: #00122e;
-      border: 1px solid #1e293b;
-      border-radius: 6px;
-      color: #fff;
-      outline: none;
-      transition: border 0.2s, box-shadow 0.2s;
-    }
-
-    input:focus, select:focus {
-      border-color: var(--cpg-cyan);
-      box-shadow: 0 0 8px rgba(0, 214, 255, 0.25);
-    }
-
-    .readonly-price {
-      background: #040d1a !important;
-      color: var(--cpg-text-muted);
-      border-color: #162235 !important;
-    }
-
-    /* Modern Table Styling */
-    .table-responsive {
-      overflow-x: auto;
-      margin-bottom: 20px;
-      border-radius: 8px;
-      border: 1px solid var(--cpg-border);
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      text-align: left;
-      font-size: 0.88rem;
-    }
-
-    th {
-      background: #00193b;
-      color: var(--cpg-cyan);
-      padding: 12px 14px;
-      font-weight: 600;
-      border-bottom: 2px solid var(--cpg-border);
-      white-space: nowrap;
-    }
-
-    td {
-      padding: 12px 14px;
-      border-bottom: 1px solid var(--cpg-border);
-      vertical-align: middle;
-      background: rgba(13, 27, 42, 0.6);
-    }
-
-    tr:hover td {
-      background: rgba(18, 130, 162, 0.08);
-    }
-
-    /* Tooltip styling */
-    .has-tooltip {
-      position: relative;
-      cursor: help;
-      color: var(--cpg-accent);
-      text-decoration: underline dotted;
-    }
-
-    .has-tooltip:hover::after {
-      content: attr(data-tooltip);
-      position: absolute;
-      bottom: 125%;
-      left: 0;
-      width: 290px;
-      background: #00122e;
-      color: #fff;
-      padding: 12px;
-      border: 1px solid var(--cpg-cyan);
-      border-radius: 6px;
-      font-size: 0.78rem;
-      white-space: pre-wrap;
-      z-index: 1000;
-      box-shadow: 0 6px 16px rgba(0,0,0,0.4);
-    }
-
-    /* Bottom Discount Toolbar */
-    .discount-toolbar-bottom {
-      background: #001533;
-      padding: 15px 20px;
-      border: 1px solid var(--cpg-border);
-      border-radius: 8px;
-      margin-top: 15px;
-      margin-bottom: 15px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 12px;
-    }
-
-    .radio-group {
-      display: flex;
-      gap: 15px;
-      align-items: center;
-      flex-wrap: wrap;
-    }
-
-    .radio-group label {
-      font-size: 0.85rem;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 5px;
-    }
-
-    .action-bar {
-      padding: 20px 30px;
-      background: #00122e;
-      border-top: 1px solid var(--cpg-border);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .btn {
-      padding: 10px 22px;
-      border-radius: 6px;
-      border: none;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 0.88rem;
-    }
-
-    .btn-primary { background: var(--cpg-cyan); color: #fff; }
-    .btn-primary:hover { background: #0f6c87; }
-    .btn-secondary { background: #1e293b; color: var(--cpg-text-light); }
-    .btn-secondary:hover { background: #334155; }
-    .btn-demo { background: #7c3aed; color: #fff; }
-    .btn-demo:hover { background: #6d28d9; }
-    .btn-success { background: #10b981; color: #fff; }
-    .btn-success:hover { background: #059669; }
-
-    .badge-na { color: var(--cpg-danger); font-weight: 600; }
+    .xero-terms { font-size: 9pt; margin-top: 20px; }
+    .xero-terms-title { font-weight: bold; margin-bottom: 3px; }
   </style>
 </head>
 <body>
 
-<div class="app-container">
-  <header class="app-header">
-    <h1>Cyber Protection Group <span>Quote Tool</span></h1>
-  </header>
+<div class="container">
+  <!-- Dynamic Category Navigation Tabs -->
+  <div class="step-header" id="stepIndicatorHeader"></div>
 
-  <!-- Clickable Step Navigation Bar -->
-  <div class="progress-bar" id="progress-bar">
-    <div class="step-node active" id="node-0" onclick="goToStep(0)">1. Customer Details</div>
-    <div class="step-node" id="node-1" onclick="goToStep(1)">2. CYBER App</div>
-    <div class="step-node" id="node-2" onclick="goToStep(2)">3. CYBER Assure</div>
-    <div class="step-node" id="node-3" onclick="goToStep(3)">4. CYBER Backup</div>
-    <div class="step-node" id="node-4" onclick="goToStep(4)">5. CYBER Connect</div>
-    <div class="step-node" id="node-5" onclick="goToStep(5)">6. CYBER Defense</div>
-    <div class="step-node" id="node-6" onclick="goToStep(6)">7. Cyber Scan</div>
-    <div class="step-node" id="node-7" onclick="goToStep(7)">8. Summary & Export</div>
-  </div>
+  <!-- Form Wizard Container -->
+  <form id="quoteWizardForm">
+    <!-- PAGE 1: CUSTOMER DETAILS -->
+    <div class="form-step active" id="step-1">
+      <h2>Client Information</h2>
+      <p class="desc">Enter client and quote metadata directly matching the Xero template specifications.</p>
 
-  <form id="quote-form" onsubmit="return false;">
-    <!-- PAGE 1: CUSTOMER INFORMATION (RESTORED TO FRONT) -->
-    <div class="page-content active" id="page-0">
-      <div class="section-title">
-        <h2>Customer & Quote Information</h2>
-        <button type="button" class="btn btn-demo" onclick="populateTestData()">⚡ Load Test Data</button>
+      <div class="grid-2">
+        <div>
+          <div class="form-group">
+            <label>Company Name *</label>
+            <input type="text" id="custCompany" value="South Essex Sealed Units LTD" required>
+          </div>
+          <div class="form-group">
+            <label>Attention (Contact Name)</label>
+            <input type="text" id="custAttention" value="Carl Hicks">
+          </div>
+          <div class="form-group">
+            <label>Company Address</label>
+            <textarea id="custAddress">UNIT 2 BEAVER ROAD
+HAINAULT BUSINESS PARK
+HAINAULT
+ESSEX
+IG6 3UT
+UNITED KINGDOM</textarea>
+          </div>
+        </div>
+        <div>
+          <div class="form-group">
+            <label>Quote Number *</label>
+            <input type="text" id="quoteNumber" value="QU-1006" required>
+          </div>
+          <div class="form-group">
+            <label>Reference</label>
+            <input type="text" id="quoteReference" value="Reference: MBCH-01">
+          </div>
+          <div class="form-group">
+            <label>Quote Date</label>
+            <input type="text" id="quoteDate" value="12 Jun 2025">
+          </div>
+          <div class="form-group">
+            <label>Expiry Date</label>
+            <input type="text" id="quoteExpiry" value="26 Jun 2025">
+          </div>
+        </div>
       </div>
-      <p class="section-desc">Enter client contact and address details to initialize the quote.</p>
-
-      <div class="form-grid">
-        <div class="form-group">
-          <label for="cust-company">Company Name</label>
-          <input type="text" id="cust-company" placeholder="e.g. South Essex Sealed Units LTD">
-        </div>
-        <div class="form-group">
-          <label for="cust-attention">Attention Contact</label>
-          <input type="text" id="cust-attention" placeholder="e.g. Carl Hicks">
-        </div>
-        <div class="form-group">
-          <label for="cust-phone">Contact Phone Number</label>
-          <input type="tel" id="cust-phone" placeholder="e.g. +44 1234 567890">
-        </div>
-        <div class="form-group">
-          <label for="quote-number">Quote Number</label>
-          <input type="text" id="quote-number" value="QU-1006">
-        </div>
-        <div class="form-group">
-          <label for="quote-ref">Quote Reference</label>
-          <input type="text" id="quote-ref" value="Reference: MBCH-01">
-        </div>
-        <div class="form-group">
-          <label for="cust-addr1">Address Line 1</label>
-          <input type="text" id="cust-addr1" placeholder="UNIT 2 BEAVER ROAD">
-        </div>
-        <div class="form-group">
-          <label for="cust-addr2">Address Line 2</label>
-          <input type="text" id="cust-addr2" placeholder="HAINAULT BUSINESS PARK">
-        </div>
-        <div class="form-group">
-          <label for="cust-city">City / Town</label>
-          <input type="text" id="cust-city" placeholder="HAINAULT, ESSEX">
-        </div>
-        <div class="form-group">
-          <label for="cust-postcode">Postcode</label>
-          <input type="text" id="cust-postcode" placeholder="IG6 3UT">
-        </div>
+      <div class="btn-row" style="justify-content: flex-end;">
+        <button type="button" class="btn btn-next" onclick="nextStep(1)">Next Page &rarr;</button>
       </div>
     </div>
 
-    <!-- DYNAMIC PRODUCT SECTIONS CONTAINER (PAGES 2-7) -->
-    <div id="product-pages-container"></div>
+    <!-- DYNAMIC CATEGORY PAGES (2 to N) WILL BE INJECTED HERE BY SCRIPT -->
+    <div id="dynamicCategoryPages"></div>
 
-    <!-- PAGE 8: SUMMARY & EXPORT -->
-    <div class="page-content" id="page-7">
-      <div class="section-title">
-        <h2>Quote Summary & Export</h2>
+    <!-- FINAL SUMMARY & GLOBAL DISCOUNT PAGE -->
+    <div class="form-step" id="step-summary">
+      <h2>Quote Summary & Final Options</h2>
+      <p class="desc">Review selected products across all categories. Apply a global discount if no page discounts were selected.</p>
+      
+      <div id="summaryItemsList"></div>
+
+      <div class="discount-bar" id="globalDiscountBar" style="display:none;">
+        <span style="font-weight:bold; font-size:0.9rem;">Global Discount (All Items):</span>
+        <div class="radio-group" id="globalDiscountRadios"></div>
       </div>
-      <p class="section-desc">Review selected line items and generate your PDF proposal.</p>
 
-      <div id="summary-table-container" class="table-responsive"></div>
+      <div class="btn-row">
+        <button type="button" class="btn btn-prev" onclick="prevStep('summary')">&larr; Back</button>
+        <button type="button" class="btn btn-next" onclick="renderXeroPreview()">Generate & Preview Quote &rarr;</button>
+      </div>
+    </div>
 
-      <div class="discount-toolbar-bottom" id="global-discount-container" style="display:none;">
-        <label><strong>Apply Global Discount to all items:</strong></label>
-        <div class="radio-group">
-          <label><input type="radio" name="global_disc" value="0" checked onclick="applyGlobalDiscount(0)"> 0%</label>
-          <label><input type="radio" name="global_disc" value="10" onclick="applyGlobalDiscount(10)"> 10%</label>
-          <label><input type="radio" name="global_disc" value="20" onclick="applyGlobalDiscount(20)"> 20%</label>
-          <label><input type="radio" name="global_disc" value="25" onclick="applyGlobalDiscount(25)"> 25%</label>
-          <label><input type="radio" name="global_disc" value="30" onclick="applyGlobalDiscount(30)"> 30%</label>
-          <label><input type="radio" name="global_disc" value="40" onclick="applyGlobalDiscount(40)"> 40%</label>
-          <label><input type="radio" name="global_disc" value="50" onclick="applyGlobalDiscount(50)"> 50%</label>
+    <!-- FINAL XERO PREVIEW & DOWNLOAD PAGE -->
+    <div class="form-step" id="step-preview">
+      <div class="btn-row" style="margin-bottom: 20px; margin-top: 0;">
+        <button type="button" class="btn btn-prev" onclick="goToStepId('step-summary')">&larr; Edit Selections</button>
+        <button type="button" class="btn btn-next" style="background-color: #28a745;" onclick="downloadPDF()">Download PDF Quote</button>
+      </div>
+
+      <!-- XERO TEMPLATE PREVIEW CONTAINER -->
+      <div id="xeroQuoteTemplate">
+        <div class="xero-header-notice">
+          Company Registration No: 15161917. Registered Office: Attention: Matthew Bell, 85 Great Portland Street, First Floor, London, W1W 7LT, United Kingdom.
+        </div>
+
+        <div class="xero-top-grid">
+          <div>
+            <h1 class="xero-title">QUOTE</h1>
+            <div class="xero-client-details" id="pdfClientDetails">
+              <!-- Injected via JavaScript -->
+            </div>
+          </div>
+          <div>
+            <table class="xero-meta-table">
+              <tr><td class="label">Date</td><td id="pdfDate">12 Jun 2025</td></tr>
+              <tr><td class="label">Expiry</td><td id="pdfExpiry">26 Jun 2025</td></tr>
+              <tr><td class="label">Quote Number</td><td id="pdfQuoteNum">QU-1006</td></tr>
+              <tr><td class="label">Reference</td><td id="pdfRef">Reference: MBCH-01</td></tr>
+              <tr><td class="label">VAT Number</td><td>485894422</td></tr>
+            </table>
+            <div style="margin-top: 20px; font-size: 9pt;">
+              <strong>Cyber Protection Group</strong><br>
+              Attention: Matthew Bell<br>
+              85 Great Portland Street<br>
+              First Floor<br>
+              London<br>
+              W1W 7LT<br>
+              UNITED KINGDOM[cite: 1]
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-bottom: 15px; font-weight: bold; font-size: 9.5pt;" id="pdfSubjectLine">
+          Cyber Security Protection<br>
+          <span style="font-weight: normal; font-size: 8.5pt; color: #444;" id="pdfSubServices">
+            Computers, Server, Mobile Phones, Microsoft Office Security, External & Internal Scanning, Dark Web Monitoring, Router and Network Switch Monitoring, DNS and Email Protection with Backup; Xero Accounts Backup[cite: 1]
+          </span>
+        </div>
+
+        <table class="xero-items-table">
+          <thead>
+            <tr>
+              <th style="width: 55%;">Description</th>
+              <th class="num" style="width: 10%;">Quantity</th>
+              <th class="num" style="width: 12%;">Unit Price</th>
+              <th class="num" style="width: 10%;">VAT</th>
+              <th class="num" style="width: 13%;">Amount GBP</th>
+            </tr>
+          </thead>
+          <tbody id="pdfTableBody">
+            <!-- Injected dynamically -->
+          </tbody>
+        </table>
+
+        <div class="xero-totals-container">
+          <table class="xero-totals-table">
+            <tr>
+              <td>Subtotal</td>
+              <td class="num" id="pdfSubtotal">0.00</td>
+            </tr>
+            <tr>
+              <td>TOTAL VAT 20%</td>
+              <td class="num" id="pdfVat">0.00</td>
+            </tr>
+            <tr class="grand-total">
+              <td>TOTAL GBP</td>
+              <td class="num" id="pdfGrandTotal">0.00</td>
+            </tr>
+          </table>
+        </div>
+
+        <div class="xero-terms">
+          <div class="xero-terms-title">Terms</div>
+          <div>Monthly in Advance</div>
+          <div>12 Month rolling contract</div>
+        </div>
+
+        <div class="xero-header-notice" style="margin-top: 40px; border-top: 1px solid #E0E0E0; padding-top: 8px;">
+          Company Registration No: 15161917. Registered Office: Attention: Matthew Bell, 85 Great Portland Street, First Floor, London, W1W 7LT, United Kingdom.[cite: 1]
         </div>
       </div>
     </div>
   </form>
-
-  <!-- Navigation Bar -->
-  <footer class="action-bar">
-    <button type="button" class="btn btn-secondary" id="btn-prev" onclick="changeStep(-1)">Back</button>
-    <div>
-      <button type="button" class="btn btn-primary" id="btn-next" onclick="changeStep(1)">Next Step &rarr;</button>
-      <button type="button" class="btn btn-success" id="btn-export" style="display:none;" onclick="downloadPDF()">Download PDF Quote</button>
-    </div>
-  </footer>
 </div>
 
 <script>
-// Master Data set matching specs
-const cpgProductCatalog = [
-  // CYBER App
-  { category: "CYBER App", class: "Mobile Protection", code: "CA-01", supplier: "Cynet", buyPrice: 4.50, sellPrice: 10.00, service: "Mobile Threat Defense", function: "Protects mobile devices from phishing and malware", benefit: "Secures corporate data on mobile endpoints" },
-  { category: "CYBER App", class: "Mobile Protection", code: "CA-02 (a)", supplier: "Cynet", buyPrice: 4.50, sellPrice: 10.00, service: "Mobile Application Security", function: "Scans mobile apps for vulnerabilities", benefit: "Prevents data leaks from unauthorized applications" },
-
-  // CYBER Assure
-  { category: "CYBER Assure", class: "Compliance & Governance", code: "CAS-01", supplier: "Cyber Protection Group", buyPrice: 15.00, sellPrice: 30.00, service: "Cyber Essentials Prep", function: "Prepares organization for CE certification", benefit: "Ensures compliance with national cyber baselines" },
-  { category: "CYBER Assure", class: "Compliance & Governance", code: "CAS-02", supplier: "Cyber Protection Group", buyPrice: 25.00, sellPrice: 50.00, service: "Cyber Essentials Plus Audit", function: "Hands-on technical verification audit", benefit: "Provides verified security posture status" },
-  { category: "CYBER Assure", class: "Policy & Framework", code: "CAS-03", supplier: "Cyber Protection Group", buyPrice: 10.00, sellPrice: 20.00, service: "Policy Development", function: "Drafts tailored security policies", benefit: "Establishes clear operational security rules" },
-  { category: "CYBER Assure", class: "Policy & Framework", code: "CAS-04", supplier: "Cyber Protection Group", buyPrice: null, sellPrice: null, service: "Custom Risk Assessment", function: "Evaluates infrastructure risk levels", benefit: "Identifies hidden security gaps" },
-  { category: "CYBER Assure", class: "Staff Security", code: "CAS-05", supplier: "KnowBe4", buyPrice: 2.00, sellPrice: 4.50, service: "Phishing Simulation", function: "Sends test phishing emails to staff", benefit: "Reduces likelihood of human error breaches" },
-  { category: "CYBER Assure", class: "Staff Security", code: "CAS-06", supplier: "KnowBe4", buyPrice: 3.00, sellPrice: 6.00, service: "Security Awareness Training", function: "Delivers interactive video training", benefit: "Builds a security-conscious company culture" },
-  { category: "CYBER Assure", class: "Staff Security", code: "CAS-07", supplier: "KnowBe4", buyPrice: 4.00, sellPrice: 9.63, service: "Advanced Security Awareness", function: "Comprehensive compliance & security training", benefit: "Meets strict industry security awareness standards" },
-  { category: "CYBER Assure", class: "Governance", code: "CAS-08", supplier: "Cyber Protection Group", buyPrice: 50.00, sellPrice: 100.00, service: "Virtual CISO", function: "Executive level security guidance", benefit: "Strategic leadership without hiring full-time CISO" },
-  { category: "CYBER Assure", class: "Governance", code: "CAS-09", supplier: "Cyber Protection Group", buyPrice: 30.00, sellPrice: 60.00, service: "Third Party Risk Audit", function: "Assesses supplier risk profiles", benefit: "Protects supply chain access vectors" },
-  { category: "CYBER Assure", class: "Governance", code: "CAS-10", supplier: "Cyber Protection Group", buyPrice: 40.00, sellPrice: 80.00, service: "GDPR Compliance Review", function: "Audits data privacy practices", benefit: "Mitigates regulatory fine risks" },
-
-  // CYBER Backup
-  { category: "CYBER Backup", class: "SaaS Backup", code: "CB-01", supplier: "Acronis", buyPrice: 1.10, sellPrice: 2.31, service: "M365 & Google Workspace Backup", function: "Automated daily cloud-to-cloud backup", benefit: "Prevents loss of emails, OneDrive, and SharePoint" },
-  { category: "CYBER Backup", class: "Endpoint Backup", code: "CB-02", supplier: "Acronis", buyPrice: 3.00, sellPrice: 6.50, service: "Workstation Cloud Backup", function: "Full system image backups for PCs", benefit: "Quick recovery from disk failure or ransomware" },
-  { category: "CYBER Backup", class: "Server Backup", code: "CB-03", supplier: "Acronis", buyPrice: 15.00, sellPrice: 32.00, service: "Server Cloud Backup", function: "Complete physical & virtual server backups", benefit: "Minimizes business downtime during disasters" },
-  { category: "CYBER Backup", class: "SaaS Backup", code: "CB-04", supplier: "OwnBackup", buyPrice: 1.80, sellPrice: 3.50, service: "Salesforce Cloud Backup", function: "Automated Salesforce CRM data backup", benefit: "Protects critical customer relationship records" },
-  { category: "CYBER Backup", class: "SaaS Backup", code: "CB-05", supplier: "Rewind", buyPrice: 4.50, sellPrice: 9.80, service: "Xero Accounting Backup", function: "Daily financial data cloud backups", benefit: "Ensures accounting records can be restored" },
-
-  // CYBER Connect
-  { category: "CYBER Connect", class: "Network Security", code: "CC-01", supplier: "Fortinet", buyPrice: 20.00, sellPrice: 45.00, service: "Managed Firewall Service", function: "Inspects and filters incoming/outgoing network traffic", benefit: "Blocks perimeter network intrusion" },
-  { category: "CYBER Connect", class: "Secure Access", code: "CC-02", supplier: "Perimeter 81", buyPrice: 5.00, sellPrice: 10.00, service: "Zero Trust Network Access (ZTNA)", function: "Enforces identity-based network access", benefit: "Secures remote connections without traditional VPN" },
-
-  // CYBER Defense
-  { category: "CYBER Defense", class: "Endpoint Defense", code: "CD-01", supplier: "Cynet", buyPrice: 8.50, sellPrice: 18.60, service: "XDR Endpoint Protection (Windows)", function: "AI-driven endpoint detection and response", benefit: "Stops advanced malware and exploits in real time" },
-  { category: "CYBER Defense", class: "Endpoint Defense", code: "CD-02", supplier: "Cynet", buyPrice: 8.50, sellPrice: 18.60, service: "XDR Server Protection", function: "Real-time threat monitoring for servers", benefit: "Protects key infrastructure servers against attacks" },
-  { category: "CYBER Defense", class: "Endpoint Defense", code: "CD-03", supplier: "Cynet", buyPrice: 8.50, sellPrice: 18.60, service: "XDR Mac Endpoint Protection", function: "Specialized threat detection for Mac endpoints", benefit: "Provides equivalent protection across Apple hardware" },
-  { category: "CYBER Defense", class: "Remote Access", code: "CD-04", supplier: "Cynet", buyPrice: 1.20, sellPrice: 2.50, service: "Secure Remote Desktop Gateway", function: "Secures RDP connections against brute force", benefit: "Prevents unauthorized desktop takeovers" },
-
-  // Cyber Scan
-  { category: "Cyber Scan", class: "Threat Intelligence", code: "CS-01", supplier: "ID Agent", buyPrice: 3.10, sellPrice: 7.22, service: "Dark Web ID Monitoring", function: "Monitors dark web markets for stolen credentials", benefit: "Alerts before stolen logins lead to account takeovers" },
-  { category: "Cyber Scan", class: "Vulnerability Scanning", code: "CS-02", supplier: "Nessus", buyPrice: 12.00, sellPrice: 25.00, service: "External Vulnerability Scan", function: "Scans public IP addresses for open security holes", benefit: "Finds external entry points before hackers do" }
+/**
+ * Master Product Matrix compiled from row 9 of the "master" tab in CPG Products2
+ * Deduplicated by Cyber Protection Group Product Code (Column E), keeping highest price version.
+ */
+const MASTER_PRODUCTS = [
+  {
+    category: "CYBER App",
+    categoryDesc: "Mobile Phone & Endpoint App Protection",
+    code: "CA-01",
+    name: "Cyber App - Apple & Android",
+    desc: "We handle Endpoint Mobile Phone Protection, Monitor and remove harmful Software. Proactive threat hunting, investigation, and incident response through our managed detection and response services. Mobile Phone Scan to Detect Infection",
+    buyPrice: 5.00,
+    sellPrice: 10.00,
+    colK: "Functions: Mobile Threat Defense & Managed Detection",
+    colL: "Remediates malicious apps and monitors device traffic",
+    colM: "Protects sensitive company accounts accessed via mobile phones"
+  },
+  {
+    category: "CYBER App",
+    categoryDesc: "Mobile Phone & Endpoint App Protection",
+    code: "CD-09",
+    name: "DNS Scanner - Per-Domain DMARC Protection",
+    desc: "Per-Domain DMARC Protection powered by Sendmarc helps clients achieve a p=reject policy to stop email impersonation attacks, safeguarding your brand reputation, legal compliance, and customer trust. Unlike many solutions that focus on blocking inbound threats, Sendmarc prevents attackers from spoofing your domain by accurately monitoring and reporting email activity. Our tool also monitors DNS traffic to detect vulnerabilities, prevent data exfiltration, improve network performance, identify misconfigurations, and detect malicious activity—providing comprehensive protection for your domain.",
+    buyPrice: 30.00,
+    sellPrice: 58.00,
+    colK: "Functions: DMARC Enforcement & DNS Vulnerability Scanning",
+    colL: "Stops domain spoofing and phishing sent on your behalf",
+    colM: "Protects brand reputation and email deliverability"
+  },
+  {
+    category: "CYBER Assure",
+    categoryDesc: "DNS & Email Infrastructure Defense",
+    code: "CD-08",
+    name: "DNS Security",
+    desc: "Protects Domain Name System (DNS) infrastructure from cyber attacks to ensure it functions reliably and quickly. Defending DNS infrastructure from Cyber Attacks. DNS turns domain names into IP addresses, which allow browsers to get to websites and other internet resources. Every device on the internet has an IP address, which other devices can use to locate the device. DNS Security benefits include protecting against malware and phishing attacks by blocking dangerous websites, neutralizing botnet threats, preventing typo-squatting, improving connection speeds, and implementing additional measures to enhance overall cybersecurity.",
+    buyPrice: 1.20,
+    sellPrice: 2.79,
+    colK: "Functions: Web Filtering & Malicious Domain Blocking",
+    colL: "Prevents users from clicking phishing links or downloading malware",
+    colM: "Improves overall network speed and security posture"
+  },
+  {
+    category: "CYBER Assure",
+    categoryDesc: "DNS & Email Infrastructure Defense",
+    code: "CD-06",
+    name: "Email Protection",
+    desc: "Technology that help prevent, detect, and respond to cyber-attacks that are sent via email. Spam, Malware, Threats, Phishing & Impersonation Protection, Account Takeover, Incident Response",
+    buyPrice: 4.15,
+    sellPrice: 8.33,
+    colK: "Functions: Anti-Spam, Anti-Phishing & Account Takeover Defense",
+    colL: "Scans incoming mail for malicious attachments and fraudulent links",
+    colM: "Keeps primary communication safe from compromise"
+  },
+  {
+    category: "CYBER Backup",
+    categoryDesc: "Cloud Data & Accounting Backup Solutions",
+    code: "CB-01",
+    name: "Office 365 Backup",
+    desc: "Comprehensive backup solution for Mail, OneDrive, SharePoint, OneNote, and Teams, providing full control over your data storage. Protects against data loss, controls data exfiltration, and minimizes damage from cyberattacks to ensure business continuity.",
+    buyPrice: 1.15,
+    sellPrice: 2.31,
+    colK: "Functions: Immutable M365 Cloud Backup",
+    colL: "Backs up emails, OneDrive files, and SharePoint documents",
+    colM: "Enables instant recovery from ransomware or accidental deletion"
+  },
+  {
+    category: "CYBER Backup",
+    categoryDesc: "Cloud Data & Accounting Backup Solutions",
+    code: "CB-05",
+    name: "Xero",
+    desc: "Comprehensive backup solution for Xero, covering all critical data including Customers, Suppliers, Products, Services, and Bank records along with full transaction history. Enables fast, accurate restoration of data to ensure business continuity, support regulatory compliance, and protect against accidental deletion, corruption, or cyber incidents.",
+    buyPrice: 4.50,
+    sellPrice: 9.70,
+    colK: "Functions: Automated Financial Ledger Backup",
+    colL: "Captures full transaction history and supplier records daily",
+    colM: "Guarantees accounting compliance and rapid disaster recovery"
+  },
+  {
+    category: "CYBER Certify",
+    categoryDesc: "Compliance & Government Certification",
+    code: "CE-01",
+    name: "Cyber Essentials Bundles",
+    desc: "Cyber Essentials Certification powered by the Cybersmart dashboard and Active Protect Agent offers a streamlined solution. Backed by the UK government, this includes Cyber Plus coverage with up to £100K cyber insurance Providing robust protection with on-going peace of mind. This provides continues Protection to remain certified.",
+    buyPrice: 50.00,
+    sellPrice: 95.00,
+    colK: "Functions: Automated Compliance & £100K Cyber Insurance",
+    colL: "Continuous endpoint scanning to maintain official UK certification",
+    colM: "Unlocks government and corporate supplier contracts"
+  },
+  {
+    category: "CYBER Defense",
+    categoryDesc: "Endpoint, Server & Dark Web Protection",
+    code: "CD-01",
+    name: "Microsoft Computers and Laptop",
+    desc: "Our advanced security suite includes Next-Gen Anti-Virus, EDR, and XDR to protect your systems against modern cyber threats. It provides real-time threat detection, automated response, and unified protection across all endpoints and environments.",
+    buyPrice: 4.15,
+    sellPrice: 8.33,
+    colK: "Functions: Next-Gen Anti-Virus, EDR & XDR Endpoint Protection",
+    colL: "Monitors workstation behaviors and isolates threats in real time",
+    colM: "Stops malware before it spreads across internal networks"
+  },
+  {
+    category: "CYBER Defense",
+    categoryDesc: "Endpoint, Server & Dark Web Protection",
+    code: "CD-02",
+    name: "Microsoft Server",
+    desc: "We enforce Zero Trust by locking down all devices, blocking all inbound and outbound traffic, and monitoring every application install. With EDR and XDR, our systems detect and respond to threats in real time.",
+    buyPrice: 9.00,
+    sellPrice: 18.00,
+    colK: "Functions: Zero Trust Enforcement & Server EDR/XDR",
+    colL: "Blocks unauthorized network connections and application launches",
+    colM: "Secures critical central databases and domain controllers"
+  },
+  {
+    category: "CYBER Defense",
+    categoryDesc: "Endpoint, Server & Dark Web Protection",
+    code: "CS-01",
+    name: "Dark Web Monitoring",
+    desc: "Dark Web Monitoring proactively scans the dark web for compromised credentials and sensitive information related to your business. It provides immediate alerts if usernames, passwords, or personal data are found in breaches, enabling you to take swift action to update security details and prevent unauthorized access. Stay one step ahead of cyber threats by identifying and addressing leaked information before it can be exploited.",
+    buyPrice: 4.15,
+    sellPrice: 8.33,
+    colK: "Functions: Continuous Dark Web Credential Monitoring",
+    colL: "Alerts admins immediately if employee passwords appear in breach databases",
+    colM: "Prevents account takeover attacks before hackers log in"
+  },
+  {
+    category: "CYBER Defense",
+    categoryDesc: "Endpoint, Server & Dark Web Protection",
+    code: "CD-10",
+    name: "M365 Security / Remediation Platform",
+    desc: "Automatically remediate any policies that fall out of line, it will also proactively monitor clients' estates and alert you to any security breaches like password attempts and foreign Sign-In.",
+    buyPrice: 1.20,
+    sellPrice: 2.50,
+    colK: "Functions: Automated Tenant Policy Remediation",
+    colL: "Fixes misconfigured Microsoft security policies automatically",
+    colM: "Detects unauthorized foreign logins and brute force attempts"
+  },
+  {
+    category: "CYBER Detect",
+    categoryDesc: "Infrastructure & Network Vulnerability Scanning",
+    code: "CX-01",
+    name: "External Scanning",
+    desc: "Our Vulnerability Scanning service assesses your network from a threat actor’s perspective by scanning external IP addresses and domains for exploitable weaknesses. Using advanced automated tools, we identify security flaws in web applications—such as cross-site scripting (XSS), SQL injection, and cross-site request forgery (CSRF)—to help you proactively protect your internet-facing infrastructure.",
+    buyPrice: 60.00,
+    sellPrice: 117.00,
+    colK: "Functions: Perimeter & Public IP Vulnerability Scanning",
+    colL: "Identifies web app vulnerabilities (SQLi, XSS, CSRF)",
+    colM: "Fixes open ports before malicious hackers find them"
+  },
+  {
+    category: "CYBER Detect",
+    categoryDesc: "Infrastructure & Network Vulnerability Scanning",
+    code: "CX-02",
+    name: "Internal Scanning",
+    desc: "Vulnerability Scanning for all your digital assets and virtual appliances. We thoroughly assess your internal networks, systems, and infrastructure to identify security weaknesses and strengthen your defenses. Using automated tools, our process evaluates vulnerabilities across your IT environment to help you proactively enhance overall security.",
+    buyPrice: 70.00,
+    sellPrice: 135.20,
+    colK: "Functions: Internal Network & Digital Asset Scanning",
+    colL: "Audits unpatched internal software and virtual appliances",
+    colM: "Prevents lateral movement during an internal breach"
+  },
+  {
+    category: "CYBER Detect",
+    categoryDesc: "Infrastructure & Network Vulnerability Scanning",
+    code: "CX-03",
+    name: "Broadband Routers & Firewalls",
+    desc: "(Draytek Vigor2866ac, Netgear GS7224T Smart Switch, and Netgear ProSafe GS110TP Enterprise-grade network hardware with co-managed support and real-time reporting on intrusion attempts. Behavioral AI monitors all processes for malicious activity, detecting thousands of malware variants. Our solution offers advanced threat visibility, root cause analysis, and rapid remediation with the ability to reverse malicious actions instantly.",
+    buyPrice: null, // Missing price test rule -> set n/a & disabled
+    sellPrice: 8.00,
+    colK: "Functions: Managed Firewall & Network Hardware AI Monitoring",
+    colL: "Behavioral AI detects hardware-level intrusions",
+    colM: "Provides root cause analysis and instant threat reversal"
+  }
 ];
 
-const categories = ["CYBER App", "CYBER Assure", "CYBER Backup", "CYBER Connect", "CYBER Defense", "Cyber Scan"];
-let activeStep = 0;
+// App State Management
+let categories = [];
 let productState = {};
-let sectionDiscounts = {};
+let pageDiscounts = {}; // Page index -> discount %
+let currentStepIndex = 1;
 
-document.addEventListener("DOMContentLoaded", () => {
-  initProductState();
-  renderProductPages();
-  updateStepVisibility();
-});
-
-function initProductState() {
-  cpgProductCatalog.forEach(p => {
+// Initialize Application Wizard
+document.addEventListener('DOMContentLoaded', () => {
+  // Extract Unique Categories from Master Products Matrix[cite: 2]
+  categories = [...new Set(MASTER_PRODUCTS.map(p => p.category))];
+  
+  // Initialize Product State Map
+  MASTER_PRODUCTS.forEach(p => {
     productState[p.code] = {
-      ticked: false,
-      qty: 0,
-      customSellPrice: p.sellPrice,
-      baseSellPrice: p.sellPrice
+      ...p,
+      qty: 0, // Defaults to 0[cite: 2]
+      userSellPrice: p.sellPrice
     };
   });
-  categories.forEach(cat => {
-    sectionDiscounts[cat] = 0;
-  });
-}
 
-function renderProductPages() {
-  const container = document.getElementById("product-pages-container");
-  container.innerHTML = "";
+  renderHeaderTabs();
+  renderCategoryPages();
+  setupGlobalDiscountRadios();
+});
 
-  categories.forEach((cat, index) => {
-    const page = document.createElement("div");
-    page.className = "page-content";
-    page.id = `page-${index + 1}`;
-
-    const items = cpgProductCatalog.filter(p => p.category === cat);
-
-    let html = `
-      <div class="section-title">
-        <h2>${cat} Section</h2>
-      </div>
-      <p class="section-desc">Select quantities and adjust discount options for ${cat} products.</p>
-
-      <div class="table-responsive">
-        <table id="table-${cat.replace(/\s+/g, '')}">
-          <thead>
-            <tr>
-              <th style="width: 40px;">Select</th>
-              <th>Protection Classification</th>
-              <th>Product Code</th>
-              <th>Supplier</th>
-              <th>CPG Buy Price</th>
-              <th id="th-sell-${cat.replace(/\s+/g, '')}">CPG Sell Price</th>
-              <th style="width: 90px;">Quantity</th>
-            </tr>
-          </thead>
-          <tbody>
-    `;
-
-    items.forEach(item => {
-      const isMissingPrice = item.buyPrice === null;
-      const tooltipText = `Service Offering: ${item.service}\nFunction: ${item.function}\nBenefit: ${item.benefit}`;
-
-      html += `
-        <tr id="row-${item.code}">
-          <td style="text-align:center;">
-            <input type="checkbox" id="chk-${item.code}" 
-              ${isMissingPrice ? 'disabled' : ''} 
-              onchange="handleCheckboxChange('${item.code}', '${cat}')">
-          </td>
-          <td>
-            <span class="has-tooltip" data-tooltip="${tooltipText}">
-              ${item.class}
-            </span>
-          </td>
-          <td><strong>${item.code}</strong></td>
-          <td>${item.supplier}</td>
-          <td>${isMissingPrice ? '<span class="badge-na">n/a</span>' : '£' + item.buyPrice.toFixed(2)}</td>
-          <td id="cell-sell-${item.code}">
-            ${isMissingPrice ? '<span class="badge-na">n/a</span>' : `
-              £<input type="number" step="0.01" style="width: 85px;" id="sell-${item.code}" 
-                value="${item.sellPrice.toFixed(2)}" 
-                onchange="updateCustomSellPrice('${item.code}', this.value, '${cat}')">
-            `}
-          </td>
-          <td>
-            <input type="number" min="0" value="0" style="width: 75px;" 
-              id="qty-${item.code}"
-              class="${isMissingPrice ? 'readonly-price' : ''}" 
-              ${isMissingPrice ? 'disabled' : ''} 
-              onchange="handleQuantityChange('${item.code}', this.value, '${cat}')">
-          </td>
-        </tr>
-      `;
-    });
-
-    html += `
-          </tbody>
-        </table>
-      </div>
-
-      <!-- BOTTOM DISCOUNT TOOLBAR RESTORED -->
-      <div class="discount-toolbar-bottom">
-        <label><strong>Section Discount for ${cat}:</strong></label>
-        <div class="radio-group">
-          <label><input type="radio" name="disc_${cat}" value="0" checked onclick="setSectionDiscount('${cat}', 0)"> 0%</label>
-          <label><input type="radio" name="disc_${cat}" value="10" onclick="setSectionDiscount('${cat}', 10)"> 10%</label>
-          <label><input type="radio" name="disc_${cat}" value="20" onclick="setSectionDiscount('${cat}', 20)"> 20%</label>
-          <label><input type="radio" name="disc_${cat}" value="25" onclick="setSectionDiscount('${cat}', 25)"> 25%</label>
-          <label><input type="radio" name="disc_${cat}" value="30" onclick="setSectionDiscount('${cat}', 30)"> 30%</label>
-          <label><input type="radio" name="disc_${cat}" value="40" onclick="setSectionDiscount('${cat}', 40)"> 40%</label>
-          <label><input type="radio" name="disc_${cat}" value="50" onclick="setSectionDiscount('${cat}', 50)"> 50%</label>
-        </div>
-      </div>
-    `;
-
-    page.innerHTML = html;
-    container.appendChild(page);
-  });
-}
-
-function handleQuantityChange(code, val, category) {
-  const qty = parseInt(val) || 0;
-  productState[code].qty = qty;
-
-  const chk = document.getElementById(`chk-${code}`);
-  if (qty > 0 && !chk.checked) {
-    chk.checked = true;
-    productState[code].ticked = true;
-  }
-  updateSectionDiscountDOM(category);
-}
-
-function handleCheckboxChange(code, category) {
-  const chk = document.getElementById(`chk-${code}`);
-  productState[code].ticked = chk.checked;
-  updateSectionDiscountDOM(category);
-}
-
-function updateCustomSellPrice(code, val, category) {
-  const newPrice = parseFloat(val);
-  const basePrice = productState[code].baseSellPrice;
-  const minPrice = basePrice * 0.5;
-
-  if (isNaN(newPrice) || newPrice < minPrice) {
-    alert(`Discount threshold limit reached. Sell price cannot fall below £${minPrice.toFixed(2)} (max 50% discount).`);
-    document.getElementById(`sell-${code}`).value = productState[code].customSellPrice.toFixed(2);
-    return;
-  }
-  productState[code].customSellPrice = newPrice;
-}
-
-function setSectionDiscount(category, pct) {
-  sectionDiscounts[category] = parseFloat(pct);
-  updateSectionDiscountDOM(category);
-}
-
-function updateSectionDiscountDOM(category) {
-  const discPct = sectionDiscounts[category] || 0;
-  const tableId = `table-${category.replace(/\s+/g, '')}`;
-  const table = document.getElementById(tableId);
-  if (!table) return;
-
-  const hasDiscount = discPct > 0;
-  const catItems = cpgProductCatalog.filter(p => p.category === category);
-
-  let discHeader = table.querySelector('.disc-header-col');
-  const sellHeader = document.getElementById(`th-sell-${category.replace(/\s+/g, '')}`);
-
-  if (hasDiscount) {
-    if (sellHeader) sellHeader.style.color = '#8892b0';
-    if (!discHeader && sellHeader) {
-      discHeader = document.createElement('th');
-      discHeader.className = 'disc-header-col';
-      discHeader.style.color = 'var(--cpg-danger)';
-      discHeader.textContent = 'CPG Discounted Price (£)';
-      sellHeader.insertAdjacentElement('afterend', discHeader);
-    }
-  } else {
-    if (sellHeader) sellHeader.style.color = 'var(--cpg-cyan)';
-    if (discHeader) discHeader.remove();
-  }
-
-  catItems.forEach(prod => {
-    if (prod.buyPrice === null) return;
-
-    const row = document.getElementById(`row-${prod.code}`);
-    const sellCell = document.getElementById(`cell-sell-${prod.code}`);
-    const chk = document.getElementById(`chk-${prod.code}`);
-    let discCell = row.querySelector(`.disc-cell-${prod.code}`);
-
-    const isTicked = chk && chk.checked;
-
-    if (hasDiscount) {
-      if (isTicked) {
-        const discPrice = (productState[prod.code].customSellPrice * (1 - discPct / 100)).toFixed(2);
-        if (!discCell) {
-          discCell = document.createElement('td');
-          discCell.className = `disc-cell-${prod.code}`;
-          discCell.innerHTML = `£<input type="number" step="0.01" value="${discPrice}" readonly class="readonly-price" style="color: var(--cpg-danger); font-weight: bold; width: 85px;">`;
-          sellCell.insertAdjacentElement('afterend', discCell);
-        } else {
-          discCell.innerHTML = `£<input type="number" step="0.01" value="${discPrice}" readonly class="readonly-price" style="color: var(--cpg-danger); font-weight: bold; width: 85px;">`;
-        }
-      } else {
-        if (!discCell) {
-          discCell = document.createElement('td');
-          discCell.className = `disc-cell-${prod.code}`;
-          discCell.innerHTML = `<span style="color: var(--cpg-text-muted); display: block; text-align: center;">-</span>`;
-          sellCell.insertAdjacentElement('afterend', discCell);
-        } else {
-          discCell.innerHTML = `<span style="color: var(--cpg-text-muted); display: block; text-align: center;">-</span>`;
-        }
-      }
-    } else {
-      if (discCell) discCell.remove();
-    }
-  });
-}
-
-function applyGlobalDiscount(pct) {
-  const discountPct = parseFloat(pct);
-  categories.forEach(cat => {
-    sectionDiscounts[cat] = discountPct;
-    const radio = document.querySelector(`input[name="disc_${cat}"][value="${discountPct}"]`);
-    if (radio) radio.checked = true;
-    updateSectionDiscountDOM(cat);
-  });
-  renderSummaryTable();
-}
-
-function goToStep(stepIndex) {
-  activeStep = stepIndex;
-  updateStepVisibility();
-}
-
-function changeStep(direction) {
-  const totalSteps = 8;
-  const newStep = activeStep + direction;
-
-  if (newStep >= 0 && newStep < totalSteps) {
-    activeStep = newStep;
-    updateStepVisibility();
-  }
-}
-
-function updateStepVisibility() {
-  document.querySelectorAll(".page-content").forEach((page, i) => {
-    page.classList.toggle("active", i === activeStep);
+// Render Dynamic Step Header Navigation Bar
+function renderHeaderTabs() {
+  const container = document.getElementById('stepIndicatorHeader');
+  let html = `<div class="step-tab active" id="tab-1" onclick="goToStepId('step-1')">1. Client Info</div>`;
+  
+  categories.forEach((cat, idx) => {
+    const stepNum = idx + 2;
+    html += `<div class="step-tab" id="tab-${stepNum}" onclick="goToStepId('step-cat-${idx}')">${stepNum}. ${cat}</div>`;
   });
 
-  document.querySelectorAll(".step-node").forEach((node, i) => {
-    node.classList.toggle("active", i === activeStep);
-    node.classList.toggle("completed", i < activeStep);
-  });
-
-  document.getElementById("btn-prev").style.display = activeStep === 0 ? "none" : "inline-flex";
-
-  if (activeStep === 7) {
-    document.getElementById("btn-next").style.display = "none";
-    document.getElementById("btn-export").style.display = "inline-flex";
-    renderSummaryTable();
-  } else {
-    document.getElementById("btn-next").style.display = "inline-flex";
-    document.getElementById("btn-export").style.display = "none";
-  }
-}
-
-function populateTestData() {
-  document.getElementById("cust-company").value = "South Essex Sealed Units LTD";
-  document.getElementById("cust-attention").value = "Carl Hicks";
-  document.getElementById("cust-phone").value = "+44 1234 567890";
-  document.getElementById("quote-number").value = "QU-1006";
-  document.getElementById("quote-ref").value = "Reference: MBCH-01";
-  document.getElementById("cust-addr1").value = "UNIT 2 BEAVER ROAD";
-  document.getElementById("cust-addr2").value = "HAINAULT BUSINESS PARK";
-  document.getElementById("cust-city").value = "HAINAULT, ESSEX";
-  document.getElementById("cust-postcode").value = "IG6 3UT";
-
-  const sampleItems = { "CD-01": 10, "CB-01": 10, "CAS-07": 10, "CA-01": 5 };
-  for (const [code, qty] of Object.entries(sampleItems)) {
-    productState[code].qty = qty;
-    productState[code].ticked = true;
-    const inputEl = document.getElementById(`qty-${code}`);
-    const chkEl = document.getElementById(`chk-${code}`);
-    if (inputEl) inputEl.value = qty;
-    if (chkEl) chkEl.checked = true;
-  }
-
-  alert("Sample Customer & Product test data loaded!");
-}
-
-function renderSummaryTable() {
-  const container = document.getElementById("summary-table-container");
-  let totalMonthly = 0;
-  let selectedItemsCount = 0;
-  let hasAnySectionDiscount = false;
-
-  categories.forEach(cat => {
-    if (sectionDiscounts[cat] > 0) hasAnySectionDiscount = true;
-  });
-
-  const globalContainer = document.getElementById("global-discount-container");
-  if (globalContainer) {
-    globalContainer.style.display = hasAnySectionDiscount ? "none" : "flex";
-  }
-
-  let html = `
-    <table>
-      <thead>
-        <tr>
-          <th>Code</th>
-          <th>Classification</th>
-          <th>Supplier</th>
-          <th>Unit Price</th>
-          <th>Qty</th>
-          <th>Total Price</th>
-        </tr>
-      </thead>
-      <tbody>
-  `;
-
-  cpgProductCatalog.forEach(p => {
-    const state = productState[p.code];
-    if (state.ticked && state.qty > 0) {
-      selectedItemsCount++;
-      const discPct = sectionDiscounts[p.category] || 0;
-      const effectiveUnitPrice = state.customSellPrice * (1 - discPct / 100);
-      const lineTotal = state.qty * effectiveUnitPrice;
-      totalMonthly += lineTotal;
-
-      html += `
-        <tr>
-          <td><strong>${p.code}</strong></td>
-          <td>${p.class}</td>
-          <td>${p.supplier}</td>
-          <td>£${effectiveUnitPrice.toFixed(2)} ${discPct > 0 ? `<small style="color:var(--cpg-danger)">(${discPct}% off)</small>` : ''}</td>
-          <td>${state.qty}</td>
-          <td><strong>£${lineTotal.toFixed(2)}</strong></td>
-        </tr>
-      `;
-    }
-  });
-
-  if (selectedItemsCount === 0) {
-    html += `<tr><td colspan="6" style="text-align:center; padding: 20px; color: var(--cpg-text-muted);">No products selected. Click any navigation step above to add items.</td></tr>`;
-  } else {
-    html += `
-      <tr style="background: #00193b;">
-        <td colspan="5" style="text-align: right;"><strong>Total Monthly Cost:</strong></td>
-        <td><strong style="color: var(--cpg-accent); font-size: 1.1rem;">£${totalMonthly.toFixed(2)}</strong></td>
-      </tr>
-    `;
-  }
-
-  html += `</tbody></table>`;
+  const lastStepNum = categories.length + 2;
+  html += `<div class="step-tab" id="tab-summary" onclick="goToStepId('step-summary')">${lastStepNum}. Summary</div>`;
   container.innerHTML = html;
 }
 
+// Render Sequential Category Pages dynamically (Columns A-M Logic)[cite: 2]
+function renderCategoryPages() {
+  const container = document.getElementById('dynamicCategoryPages');
+  let html = '';
+
+  categories.forEach((cat, catIdx) => {
+    const pageStepId = `step-cat-${catIdx}`;
+    const productsInCat = MASTER_PRODUCTS.filter(p => p.category === cat);
+
+    html += `
+      <div class="form-step" id="${pageStepId}">
+        <h2>Category: ${cat}</h2>
+        <p class="desc">${productsInCat[0]?.categoryDesc || 'Select licenses and customize baseline pricing.'}</p>
+        
+        <div class="product-list">`;
+
+    productsInCat.forEach(p => {
+      const isMissingBuyPrice = p.buyPrice === null || p.buyPrice === undefined;
+      const buyPriceText = isMissingBuyPrice ? "n/a" : `£${p.buyPrice.toFixed(2)}`;
+      const disabledAttr = isMissingBuyPrice ? "disabled" : "";
+
+      html += `
+        <div class="product-card">
+          <div class="product-title">
+            ${p.name}
+            <div class="tooltip-text">
+              <strong>Function Breakdown:</strong><br>
+              • ${p.colK}<br>
+              • ${p.colL}<br>
+              • ${p.colM}
+            </div>
+          </div>
+          <div style="font-size: 0.85rem; color: #4A5568; margin: 6px 0;">${p.desc}</div>
+          
+          <div class="price-grid">
+            <div>
+              <label style="font-size:0.75rem; font-weight:bold; color:#718096; display:block;">QTY REQUIRED</label>
+              <input type="number" min="0" value="0" ${disabledAttr} 
+                id="qty_${p.code}" 
+                onchange="updateProductQty('${p.code}', this.value)" style="padding: 6px; width: 100%;">
+            </div>
+            <div>
+              <label style="font-size:0.75rem; font-weight:bold; color:#718096; display:block;">CPG BUY PRICE (READ-ONLY)</label>
+              <div class="read-only-price">${buyPriceText}</div>
+            </div>
+            <div>
+              <label style="font-size:0.75rem; font-weight:bold; color:#718096; display:block;">CPG SELL PRICE (£)</label>
+              <input type="number" step="0.01" value="${p.sellPrice.toFixed(2)}" ${disabledAttr}
+                id="price_${p.code}" 
+                onchange="validateAndSetSellPrice('${p.code}', this.value)" style="padding: 6px; width: 100%;">
+            </div>
+          </div>
+        </div>`;
+    });
+
+    // Page-Level Discount Radio Control Bar (0, 10, 20, 25, 30, 40, 50%)[cite: 2]
+    html += `
+        </div>
+        <div class="discount-bar">
+          <span style="font-weight:bold; font-size:0.85rem;">Apply Category Discount (${cat} Only):</span>
+          <div class="radio-group">`;
+    
+    [0, 10, 20, 25, 30, 40, 50].forEach(disc => {
+      const checked = disc === 0 ? "checked" : "";
+      html += `
+        <label>
+          <input type="radio" name="disc_cat_${catIdx}" value="${disc}" ${checked} onchange="setPageDiscount(${catIdx}, ${disc})">
+          ${disc}%
+        </label>`;
+    });
+
+    html += `
+          </div>
+        </div>
+
+        <div class="btn-row">
+          <button type="button" class="btn btn-prev" onclick="prevStep(${catIdx + 1})">&larr; Previous</button>
+          <button type="button" class="btn btn-next" onclick="nextStep(${catIdx + 2})">Next Category &rarr;</button>
+        </div>
+      </div>`;
+  });
+
+  container.innerHTML = html;
+}
+
+// Discount & Manual Price Validation Logic (50% Rule Cap)[cite: 2]
+function validateAndSetSellPrice(code, newValue) {
+  const val = parseFloat(newValue);
+  const origPrice = productState[code].sellPrice;
+  const minAllowed = origPrice * 0.5; // Max 50% discount cap[cite: 2]
+  const maxAllowed = origPrice * 1.5;
+
+  if (isNaN(val) || val < minAllowed) {
+    alert(`Warning: You cannot give more than a 50% discount on this item (Minimum allowed price: £${minAllowed.toFixed(2)}).`);
+    document.getElementById(`price_${code}`).value = origPrice.toFixed(2);
+    productState[code].userSellPrice = origPrice;
+  } else {
+    productState[code].userSellPrice = val;
+  }
+}
+
+function updateProductQty(code, qty) {
+  productState[code].qty = Math.max(0, parseInt(qty) || 0);
+}
+
+function setPageDiscount(catIdx, discountPercent) {
+  pageDiscounts[catIdx] = discountPercent;
+}
+
+// Navigation Handlers
+function goToStepId(stepId) {
+  document.querySelectorAll('.form-step').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.step-tab').forEach(el => el.classList.remove('active'));
+  
+  const target = document.getElementById(stepId);
+  if (target) target.classList.add('active');
+
+  // Highlight tab
+  if (stepId === 'step-1') document.getElementById('tab-1')?.classList.add('active');
+  else if (stepId === 'step-summary') document.getElementById('tab-summary')?.classList.add('active');
+  else if (stepId.startsWith('step-cat-')) {
+    const idx = parseInt(stepId.replace('step-cat-', ''));
+    document.getElementById(`tab-${idx + 2}`)?.classList.add('active');
+  }
+
+  if (stepId === 'step-summary') {
+    renderSummaryPage();
+  }
+}
+
+function nextStep(currentStepNumber) {
+  if (currentStepNumber === 1) {
+    goToStepId('step-cat-0');
+  } else {
+    const catIdx = currentStepNumber - 2;
+    if (catIdx + 1 < categories.length) {
+      goToStepId(`step-cat-${catIdx + 1}`);
+    } else {
+      goToStepId('step-summary');
+    }
+  }
+}
+
+function prevStep(currentStepNumber) {
+  if (currentStepNumber === 'summary') {
+    goToStepId(`step-cat-${categories.length - 1}`);
+  } else if (currentStepNumber === 1) {
+    goToStepId('step-1');
+  } else {
+    const catIdx = currentStepNumber - 2;
+    goToStepId(`step-cat-${catIdx}`);
+  }
+}
+
+// Summary Page Logic & Global Discount Option[cite: 2]
+function renderSummaryPage() {
+  const summaryContainer = document.getElementById('summaryItemsList');
+  const globalDiscountBar = document.getElementById('globalDiscountBar');
+
+  let selectedItems = Object.values(productState).filter(p => p.qty > 0);
+
+  if (selectedItems.length === 0) {
+    summaryContainer.innerHTML = `<div style="padding: 20px; background: #FFF5F5; border: 1px solid #FEB2B2; border-radius: 4px; color: #C53030;">No products selected. Please return to category pages to add quantity.</div>`;
+    globalDiscountBar.style.display = "none";
+    return;
+  }
+
+  let html = `<table style="width:100%; border-collapse:collapse; margin-bottom:20px;">
+    <thead>
+      <tr style="border-bottom:2px solid #CBD5E0; text-align:left;">
+        <th style="padding:8px;">Product</th>
+        <th style="padding:8px;">Category</th>
+        <th style="padding:8px; text-align:right;">Qty</th>
+        <th style="padding:8px; text-align:right;">Unit Price</th>
+        <th style="padding:8px; text-align:right;">Discount</th>
+        <th style="padding:8px; text-align:right;">Total</th>
+      </tr>
+    </thead>
+    <tbody>`;
+
+  let grandTotal = 0;
+  let anyPageDiscountApplied = false;
+
+  selectedItems.forEach(item => {
+    const catIdx = categories.indexOf(item.category);
+    const pageDisc = pageDiscounts[catIdx] || 0;
+    if (pageDisc > 0) anyPageDiscountApplied = true;
+
+    const unitPrice = item.userSellPrice * (1 - pageDisc / 100);
+    const lineTotal = unitPrice * item.qty;
+    grandTotal += lineTotal;
+
+    html += `
+      <tr style="border-bottom:1px solid #E2E8F0;">
+        <td style="padding:8px; font-weight:bold;">${item.name}</td>
+        <td style="padding:8px;">${item.category}</td>
+        <td style="padding:8px; text-align:right;">${item.qty}</td>
+        <td style="padding:8px; text-align:right;">£${item.userSellPrice.toFixed(2)}</td>
+        <td style="padding:8px; text-align:right;">${pageDisc}%</td>
+        <td style="padding:8px; text-align:right; font-weight:bold;">£${lineTotal.toFixed(2)}</td>
+      </tr>`;
+  });
+
+  html += `</tbody></table>
+    <div style="text-align:right; font-size:1.2rem; font-weight:bold; color:var(--cpg-navy);">
+      Estimated Subtotal: £${grandTotal.toFixed(2)}
+    </div>`;
+
+  summaryContainer.innerHTML = html;
+
+  // Show global discount options ONLY if NO page discounts were selected[cite: 2]
+  if (!anyPageDiscountApplied) {
+    globalDiscountBar.style.display = "flex";
+  } else {
+    globalDiscountBar.style.display = "none";
+  }
+}
+
+function setupGlobalDiscountRadios() {
+  const container = document.getElementById('globalDiscountRadios');
+  let html = '';
+  [0, 10, 20, 25, 30, 40, 50].forEach(disc => {
+    const checked = disc === 0 ? "checked" : "";
+    html += `
+      <label>
+        <input type="radio" name="globalDiscount" value="${disc}" ${checked} onchange="applyGlobalDiscount(${disc})">
+        ${disc}%
+      </label>`;
+  });
+  container.innerHTML = html;
+}
+
+function applyGlobalDiscount(discPercent) {
+  categories.forEach((cat, idx) => {
+    pageDiscounts[idx] = discPercent;
+  });
+  renderSummaryPage();
+}
+
+// Generate & Render Precise Xero Quote Template[cite: 1]
+function renderXeroPreview() {
+  const company = document.getElementById('custCompany').value || "Client Company";
+  const attention = document.getElementById('custAttention').value;
+  const address = document.getElementById('custAddress').value;
+
+  // Render Address block
+  let clientHtml = `<strong>${company}</strong><br>`;
+  if (attention) clientHtml += `Attention: ${attention}<br>`;
+  clientHtml += address.replace(/\n/g, '<br>');
+  document.getElementById('pdfClientDetails').innerHTML = clientHtml;
+
+  // Render Meta fields[cite: 1]
+  document.getElementById('pdfDate').innerText = document.getElementById('quoteDate').value;
+  document.getElementById('pdfExpiry').innerText = document.getElementById('quoteExpiry').value;
+  document.getElementById('pdfQuoteNum').innerText = document.getElementById('quoteNumber').value;
+  document.getElementById('pdfRef').innerText = document.getElementById('quoteReference').value;
+
+  // Build Itemized Line Rows
+  const tbody = document.getElementById('pdfTableBody');
+  tbody.innerHTML = '';
+
+  let subtotal = 0;
+  let selectedItems = Object.values(productState).filter(p => p.qty > 0);
+
+  selectedItems.forEach(item => {
+    const catIdx = categories.indexOf(item.category);
+    const disc = pageDiscounts[catIdx] || 0;
+    const finalUnitPrice = item.userSellPrice * (1 - disc / 100);
+    const lineAmount = finalUnitPrice * item.qty;
+    subtotal += lineAmount;
+
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>
+        <strong>${item.name}:</strong> ${item.desc}
+      </td>
+      <td class="num">${item.qty.toFixed(2)}</td>
+      <td class="num">${finalUnitPrice.toFixed(2)}</td>
+      <td class="num">20%</td>
+      <td class="num">${lineAmount.toFixed(2)}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  const vat = subtotal * 0.20;
+  const grandTotal = subtotal + vat;
+
+  document.getElementById('pdfSubtotal').innerText = subtotal.toFixed(2);
+  document.getElementById('pdfVat').innerText = vat.toFixed(2);
+  document.getElementById('pdfGrandTotal').innerText = grandTotal.toFixed(2);
+
+  goToStepId('step-preview');
+}
+
+// PDF Download Trigger [Customer Name + Quote Number.pdf][cite: 1, 2]
 function downloadPDF() {
-  const compName = document.getElementById("cust-company").value || "Customer";
-  const quoteNum = document.getElementById("quote-number").value || "QU-1000";
-  const filename = `${compName} ${quoteNum}.pdf`;
+  const companyName = document.getElementById('custCompany').value.trim();
+  const quoteNum = document.getElementById('quoteNumber').value.trim();
+  const filename = `${companyName} ${quoteNum}.pdf`;
 
-  const element = document.createElement("div");
-  element.style.padding = "25px";
-  element.style.background = "#fff";
-  element.style.color = "#000";
-  element.style.fontFamily = "Arial, sans-serif";
-
-  element.innerHTML = `
-    <div style="border-bottom: 2px solid #034078; padding-bottom: 12px; margin-bottom: 20px;">
-      <h1 style="color: #0a1128; margin: 0;">Cyber Protection Group</h1>
-      <p style="color: #1282a2; margin-top: 4px;">Cyber Security Proposal & Quote</p>
-    </div>
-
-    <div style="margin-bottom: 20px; line-height: 1.5; font-size: 0.9rem;">
-      <h3 style="color: #034078; border-bottom: 1px solid #ccc; padding-bottom: 4px;">Customer Information</h3>
-      <p><strong>Company:</strong> ${compName}</p>
-      <p><strong>Attention:</strong> ${document.getElementById("cust-attention").value}</p>
-      <p><strong>Phone:</strong> ${document.getElementById("cust-phone").value}</p>
-      <p><strong>Quote Ref:</strong> ${document.getElementById("quote-ref").value} | <strong>Quote #:</strong> ${quoteNum}</p>
-      <p><strong>Address:</strong> ${document.getElementById("cust-addr1").value}, ${document.getElementById("cust-addr2").value}, ${document.getElementById("cust-city").value}, ${document.getElementById("cust-postcode").value}</p>
-    </div>
-
-    <h3 style="color: #034078; border-bottom: 1px solid #ccc; padding-bottom: 4px;">Selected Solutions & Services</h3>
-    ${document.getElementById("summary-table-container").innerHTML}
-  `;
-
+  const element = document.getElementById('xeroQuoteTemplate');
   const opt = {
-    margin: 0.5,
-    filename: filename,
-    image: { type: 'jpeg', quality: 0.98 },
-    html2canvas: { scale: 2 },
-    jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+    margin:       [0.3, 0.3, 0.3, 0.3],
+    filename:     filename,
+    image:        { type: 'jpeg', quality: 0.98 },
+    html2canvas:  { scale: 2, useCORS: true },
+    jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
   };
 
   html2pdf().set(opt).from(element).save();
