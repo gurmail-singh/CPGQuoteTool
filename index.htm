@@ -3,624 +3,808 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CPG Quote Tool - Cyber Protection Group</title>
+  <title>Cyber Protection Group - Quote Builder</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <style>
     :root {
-      --bg-dark: #0a192f;
-      --card-bg: rgba(16, 30, 54, 0.65);
-      --card-border: rgba(100, 255, 218, 0.15);
-      --accent: #64ffda;
-      --accent-hover: #4cdbba;
-      --text-main: #e6f1ff;
-      --text-muted: #8892b0;
-      --danger: #ff4d4d;
-      --font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      --cpg-navy: #0a1128;
+      --cpg-dark-blue: #001f54;
+      --cpg-blue: #034078;
+      --cpg-cyan: #1282a2;
+      --cpg-accent: #00d4ff;
+      --cpg-light: #f4f7f6;
+      --cpg-card-bg: rgba(255, 255, 255, 0.95);
+      --cpg-text-dark: #1c2541;
+      --cpg-text-muted: #5c677d;
+      --cpg-border: #e0e6ed;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    }
+
     body {
-      background-color: var(--bg-dark);
-      color: var(--text-main);
-      font-family: var(--font-family);
+      background: linear-gradient(135deg, var(--cpg-navy) 0%, var(--cpg-dark-blue) 100%);
+      color: var(--cpg-text-dark);
       min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .app-container {
+      width: 100%;
+      max-width: 1100px;
+      background: var(--cpg-card-bg);
+      border-radius: 16px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(10px);
+      overflow: hidden;
       display: flex;
       flex-direction: column;
     }
 
-    header {
-      padding: 20px;
-      text-align: center;
-      border-bottom: 1px solid var(--card-border);
-      background: rgba(10, 25, 47, 0.8);
-      backdrop-filter: blur(10px);
-      position: sticky;
-      top: 0;
-      z-index: 100;
+    /* Header & Progress Bar */
+    .app-header {
+      background: var(--cpg-navy);
+      color: #fff;
+      padding: 24px;
+      border-bottom: 3px solid var(--cpg-accent);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
 
-    header h1 { font-size: 1.6rem; color: var(--accent); letter-spacing: 1px; }
+    .app-header h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
 
-    /* Progress Indicator Bar */
+    .app-header h1 span {
+      color: var(--cpg-accent);
+    }
+
     .progress-bar {
       display: flex;
-      justify-content: center;
-      gap: 8px;
-      padding: 15px;
-      background: rgba(16, 30, 54, 0.8);
-      border-bottom: 1px solid var(--card-border);
-      flex-wrap: wrap;
+      background: #00122e;
+      padding: 10px 20px;
+      gap: 10px;
+      overflow-x: auto;
     }
 
-    .step-indicator {
-      padding: 8px 14px;
-      border-radius: 20px;
-      background: rgba(255, 255, 255, 0.05);
-      color: var(--text-muted);
-      font-size: 0.85rem;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      border: 1px solid transparent;
-    }
-
-    .step-indicator.active {
-      background: rgba(100, 255, 218, 0.15);
-      color: var(--accent);
-      border-color: var(--accent);
-      font-weight: 600;
-    }
-
-    .container {
-      max-width: 1100px;
-      width: 100%;
-      margin: 20px auto;
-      padding: 0 20px;
+    .step-node {
       flex: 1;
+      text-align: center;
+      padding: 8px 12px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.5);
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 6px;
+      white-space: nowrap;
+      transition: all 0.3s ease;
     }
 
-    .form-step {
+    .step-node.active {
+      color: #fff;
+      background: var(--cpg-cyan);
+      box-shadow: 0 0 10px rgba(18, 130, 162, 0.5);
+    }
+
+    .step-node.completed {
+      color: var(--cpg-accent);
+      background: rgba(0, 212, 255, 0.1);
+    }
+
+    /* Page View Transitions */
+    .page-content {
+      padding: 30px;
       display: none;
-      animation: fadeIn 0.4s ease-in-out;
+      animation: fadeIn 0.4s ease-in-out forwards;
     }
 
-    .form-step.active { display: block; }
+    .page-content.active {
+      display: block;
+    }
 
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(10px); }
       to { opacity: 1; transform: translateY(0); }
     }
 
-    .card {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: 12px;
-      padding: 24px;
-      backdrop-filter: blur(8px);
+    /* Section Header */
+    .section-title {
+      font-size: 1.4rem;
+      color: var(--cpg-navy);
+      margin-bottom: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .section-desc {
+      font-size: 0.9rem;
+      color: var(--cpg-text-muted);
       margin-bottom: 20px;
     }
 
-    h2 { color: var(--accent); margin-bottom: 16px; font-weight: 500; }
+    /* Discount Toolbar */
+    .discount-toolbar {
+      background: #edf2f7;
+      padding: 12px 16px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      font-size: 0.88rem;
+    }
 
-    /* Form Styles */
+    .discount-toolbar select {
+      padding: 6px 12px;
+      border-radius: 6px;
+      border: 1px solid #cbd5e0;
+      font-weight: 600;
+      color: var(--cpg-navy);
+    }
+
+    /* Modern Table Styling */
+    .table-responsive {
+      overflow-x: auto;
+      margin-bottom: 20px;
+      border-radius: 8px;
+      border: 1px solid var(--cpg-border);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.9rem;
+    }
+
+    th {
+      background: var(--cpg-blue);
+      color: #fff;
+      padding: 12px 14px;
+      font-weight: 600;
+    }
+
+    td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--cpg-border);
+      vertical-align: middle;
+    }
+
+    tr:hover {
+      background-color: rgba(18, 130, 162, 0.05);
+    }
+
+    /* Input Controls */
+    input[type="number"], input[type="text"], input[type="tel"], select {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid #cbd5e0;
+      border-radius: 6px;
+      outline: none;
+      transition: border 0.2s;
+    }
+
+    input:focus, select:focus {
+      border-color: var(--cpg-cyan);
+      box-shadow: 0 0 0 3px rgba(18, 130, 162, 0.15);
+    }
+
+    .input-disabled {
+      background-color: #edf2f7;
+      color: #a0aec0;
+      cursor: not-allowed;
+    }
+
+    /* Tooltip */
+    .has-tooltip {
+      position: relative;
+      cursor: help;
+      text-decoration: underline dotted var(--cpg-cyan);
+    }
+
+    .has-tooltip:hover::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      bottom: 125%;
+      left: 0;
+      width: 280px;
+      background: var(--cpg-navy);
+      color: #fff;
+      padding: 10px;
+      border-radius: 6px;
+      font-size: 0.78rem;
+      white-space: pre-wrap;
+      z-index: 100;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+    }
+
+    /* Customer Form Grid */
     .form-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
       gap: 16px;
+      margin-bottom: 20px;
     }
 
-    .form-group { display: flex; flex-direction: column; gap: 6px; }
-    label { font-size: 0.85rem; color: var(--text-muted); }
-    input, select {
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid var(--card-border);
-      color: var(--text-main);
-      padding: 10px;
-      border-radius: 6px;
-      outline: none;
-      font-size: 0.95rem;
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
     }
-    input:focus, select:focus { border-color: var(--accent); }
-    input:disabled { opacity: 0.4; cursor: not-allowed; }
 
-    /* Category Controls & Discount Header */
-    .section-header {
+    .form-group label {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--cpg-text-dark);
+    }
+
+    /* Navigation Controls */
+    .action-bar {
+      padding: 20px 30px;
+      background: #f8fafc;
+      border-top: 1px solid var(--cpg-border);
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 16px;
-      flex-wrap: wrap;
-      gap: 10px;
     }
 
-    .discount-picker {
-      display: flex;
+    .btn {
+      padding: 10px 22px;
+      border-radius: 8px;
+      border: none;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: inline-flex;
       align-items: center;
       gap: 8px;
     }
 
-    /* Product Data Table */
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 10px;
+    .btn-primary {
+      background: var(--cpg-cyan);
+      color: #fff;
     }
 
-    th, td {
-      padding: 12px;
-      text-align: left;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-      font-size: 0.9rem;
+    .btn-primary:hover {
+      background: #0f6c87;
+      transform: translateY(-1px);
     }
 
-    th { background: rgba(255, 255, 255, 0.03); color: var(--accent); }
-    th.sell-header-grey { color: #8892b0 !important; }
-    th.disc-header-red { color: var(--danger) !important; }
-
-    .tooltip-icon {
-      cursor: help;
-      display: inline-block;
-      margin-left: 6px;
-      background: rgba(100, 255, 218, 0.2);
-      color: var(--accent);
-      border-radius: 50%;
-      width: 16px;
-      height: 16px;
-      text-align: center;
-      line-height: 16px;
-      font-size: 0.75rem;
+    .btn-secondary {
+      background: #e2e8f0;
+      color: var(--cpg-text-dark);
     }
 
-    .price-na {
-      color: var(--text-muted);
-      font-style: italic;
+    .btn-secondary:hover {
+      background: #cbd5e0;
     }
 
-    .price-grey {
-      color: #8892b0;
+    .btn-demo {
+      background: #8b5cf6;
+      color: #fff;
     }
 
-    .price-discounted {
-      color: var(--danger);
-      font-weight: bold;
+    .btn-demo:hover {
+      background: #7c3aed;
     }
 
-    /* Controls & Buttons */
-    .btn-group {
-      display: flex;
-      justify-content: space-between;
-      margin-top: 20px;
+    .btn-success {
+      background: #10b981;
+      color: #fff;
     }
 
-    .btn {
-      padding: 10px 20px;
-      border-radius: 6px;
-      border: 1px solid var(--accent);
-      background: transparent;
-      color: var(--accent);
+    .btn-success:hover {
+      background: #059669;
+    }
+
+    .badge-na {
+      color: #e53e3e;
+      font-weight: 600;
+      font-size: 0.8rem;
+    }
+
+    /* Modal */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-content {
+      background: #fff;
+      width: 90%;
+      max-width: 800px;
+      max-height: 85vh;
+      overflow-y: auto;
+      padding: 30px;
+      border-radius: 12px;
+      position: relative;
+    }
+
+    .close-modal {
+      position: absolute;
+      top: 15px; right: 20px;
+      font-size: 1.5rem;
       cursor: pointer;
-      font-weight: 500;
-      transition: all 0.2s ease;
     }
-
-    .btn:hover { background: rgba(100, 255, 218, 0.1); }
-    .btn-primary { background: var(--accent); color: var(--bg-dark); }
-    .btn-primary:hover { background: var(--accent-hover); }
-
-    .qty-input { width: 70px; text-align: center; }
   </style>
 </head>
 <body>
 
-  <header>
-    <h1>CPG QUOTE TOOL</h1>
+<div class="app-container">
+  <!-- Application Header -->
+  <header class="app-header">
+    <h1>Cyber Protection Group <span>Quote Tool</span></h1>
   </header>
 
-  <!-- Step Navigation Header -->
-  <div class="progress-bar">
-    <div class="step-indicator active" onclick="goToStep(1)">1. Customer Info</div>
-    <div class="step-indicator" onclick="goToStep(2)">2. CYBER App</div>
-    <div class="step-indicator" onclick="goToStep(3)">3. CYBER Assure</div>
-    <div class="step-indicator" onclick="goToStep(4)">4. CYBER Backup</div>
-    <div class="step-indicator" onclick="goToStep(5)">5. CYBER Connect</div>
-    <div class="step-indicator" onclick="goToStep(6)">6. CYBER Defense</div>
-    <div class="step-indicator" onclick="goToStep(7)">7. Cyber Scan</div>
-    <div class="step-indicator" onclick="goToStep(8)">8. Summary & Export</div>
+  <!-- Step Tracker -->
+  <div class="progress-bar" id="progress-bar">
+    <div class="step-node active" id="node-0">1. CYBER App</div>
+    <div class="step-node" id="node-1">2. CYBER Assure</div>
+    <div class="step-node" id="node-2">3. CYBER Backup</div>
+    <div class="step-node" id="node-3">4. CYBER Connect</div>
+    <div class="step-node" id="node-4">5. CYBER Defense</div>
+    <div class="step-node" id="node-5">6. Cyber Scan</div>
+    <div class="step-node" id="node-6">7. Customer Details</div>
+    <div class="step-node" id="node-7">8. Final Review</div>
   </div>
 
-  <div class="container">
+  <form id="quote-form" onsubmit="return false;">
+    <!-- DYNAMIC PRODUCT SECTIONS INJECTED BY JS HERE -->
+    <div id="product-pages-container"></div>
 
-    <!-- Step 1: Customer Details -->
-    <div class="form-step active" id="step-1">
-      <div class="card">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-          <h2>Customer Details</h2>
-          <button type="button" class="btn" onclick="populateTestData()">Test Data</button>
-        </div>
-        <div class="form-grid" style="margin-top:15px;">
-          <div class="form-group">
-            <label>Quote Number</label>
-            <input type="text" id="quoteNumber" value="CPG-2026-1001">
-          </div>
-          <div class="form-group">
-            <label>Company Name</label>
-            <input type="text" id="companyName" placeholder="Acme Ltd">
-          </div>
-          <div class="form-group">
-            <label>Contact Name</label>
-            <input type="text" id="contactName" placeholder="John Smith">
-          </div>
-          <div class="form-group">
-            <label>Contact Email</label>
-            <input type="email" id="contactEmail" placeholder="john@acme.com">
-          </div>
-        </div>
+    <!-- PAGE 7: CUSTOMER INFORMATION -->
+    <div class="page-content" id="page-6">
+      <div class="section-title">
+        <h2>Customer & Quote Information</h2>
+        <button type="button" class="btn btn-demo" onclick="populateTestData()">⚡ Load Test Data</button>
       </div>
-      <div class="btn-group">
-        <div></div>
-        <button class="btn btn-primary" onclick="goToStep(2)">Next: CYBER App &rarr;</button>
+      <p class="section-desc">Enter client and quote identification details below.</p>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="cust-company">Company Name</label>
+          <input type="text" id="cust-company" placeholder="e.g. South Essex Sealed Units LTD" required>
+        </div>
+        <div class="form-group">
+          <label for="cust-attention">Attention Contact</label>
+          <input type="text" id="cust-attention" placeholder="e.g. Carl Hicks">
+        </div>
+        <div class="form-group">
+          <label for="cust-phone">Contact Phone Number</label>
+          <input type="tel" id="cust-phone" placeholder="e.g. +44 1234 567890">
+        </div>
+        <div class="form-group">
+          <label for="quote-number">Quote Number</label>
+          <input type="text" id="quote-number" value="QU-1006">
+        </div>
+        <div class="form-group">
+          <label for="quote-ref">Quote Reference</label>
+          <input type="text" id="quote-ref" value="Reference: MBCH-01">
+        </div>
+        <div class="form-group">
+          <label for="cust-addr1">Address Line 1</label>
+          <input type="text" id="cust-addr1" placeholder="UNIT 2 BEAVER ROAD">
+        </div>
+        <div class="form-group">
+          <label for="cust-addr2">Address Line 2</label>
+          <input type="text" id="cust-addr2" placeholder="HAINAULT BUSINESS PARK">
+        </div>
+        <div class="form-group">
+          <label for="cust-city">City / Town</label>
+          <input type="text" id="cust-city" placeholder="HAINAULT, ESSEX">
+        </div>
+        <div class="form-group">
+          <label for="cust-postcode">Postcode</label>
+          <input type="text" id="cust-postcode" placeholder="IG6 3UT">
+        </div>
       </div>
     </div>
 
-    <!-- Category Step Template Container (Rendered dynamically) -->
-    <div id="categoryStepsContainer"></div>
-
-    <!-- Step 8: Final Review & PDF Export -->
-    <div class="form-step" id="step-8">
-      <div class="card">
-        <h2>Quote Summary</h2>
-        <div id="quoteSummaryOutput"></div>
+    <!-- PAGE 8: SUMMARY & EXPORT -->
+    <div class="page-content" id="page-7">
+      <div class="section-title">
+        <h2>Quote Summary & Export</h2>
       </div>
-      <div class="btn-group">
-        <button class="btn" onclick="goToStep(7)">&larr; Back</button>
-        <button class="btn btn-primary" onclick="downloadQuotePDF()">Download PDF Quote</button>
+      <p class="section-desc">Review selected items and export your customer quote.</p>
+
+      <div id="summary-table-container" class="table-responsive"></div>
+
+      <div class="discount-toolbar" style="margin-top:15px;">
+        <label><strong>Apply Global Discount across all products:</strong></label>
+        <select onchange="applyGlobalDiscount(this.value)">
+          <option value="0">0% Discount</option>
+          <option value="10">10% Discount</option>
+          <option value="20">20% Discount</option>
+          <option value="25">25% Discount</option>
+          <option value="30">30% Discount</option>
+          <option value="40">40% Discount</option>
+          <option value="50">50% Discount</option>
+        </select>
       </div>
     </div>
+  </form>
 
+  <!-- Navigation Bar -->
+  <footer class="action-bar">
+    <button type="button" class="btn btn-secondary" id="btn-prev" onclick="changeStep(-1)">Back</button>
+    <div>
+      <button type="button" class="btn btn-primary" id="btn-next" onclick="changeStep(1)">Next Step &rarr;</button>
+      <button type="button" class="btn btn-success" id="btn-export" style="display:none;" onclick="downloadPDF()">Download PDF Quote</button>
+    </div>
+  </footer>
+</div>
+
+<!-- Modal Preview Container -->
+<div class="modal" id="pdf-modal">
+  <div class="modal-content">
+    <span class="close-modal" onclick="closeModal()">&times;</span>
+    <div id="pdf-template-target"></div>
   </div>
+</div>
 
 <script>
-  // Product Master Catalog
-  const cpgProductCatalog = [
-    // CYBER App
-    { category: 'CYBER App', code: 'CA-01', classification: 'Apple Endpoint Protection', supplier: 'Cynet', buyPrice: 3.16, sellPrice: 10.00, serviceOffering: 'Endpoint Mobile Security', functionOfProduct: 'Monitor and remove harmful software on iOS', cyberBenefit: 'Device, Network, Apps & Phishing Threat Detection' },
-    { category: 'CYBER App', code: 'CA-02 (a)', classification: 'Android Endpoint Protection', supplier: 'Cynet', buyPrice: 3.16, sellPrice: 10.00, serviceOffering: 'Endpoint Mobile Security', functionOfProduct: 'Monitor and remove harmful software on Android', cyberBenefit: 'Device, Network, Apps & Phishing Threat Detection' },
+// Catalog master dataset matching master tab specifications
+const cpgProductCatalog = [
+  // CYBER App
+  { category: "CYBER App", class: "Mobile Protection", code: "CA-01", supplier: "Cynet", buyPrice: 4.50, sellPrice: 10.00, service: "Mobile Threat Defense", function: "Protects mobile devices from phishing and malware", benefit: "Secures corporate data on mobile endpoints" },
+  { category: "CYBER App", class: "Mobile Protection", code: "CA-02 (a)", supplier: "Cynet", buyPrice: 4.50, sellPrice: 10.00, service: "Mobile Application Security", function: "Scans mobile apps for vulnerabilities", benefit: "Prevents data leaks from unauthorized applications" },
 
-    // CYBER Assure
-    { category: 'CYBER Assure', code: 'CAS-07', classification: 'Cyber Security / Awareness Training', supplier: 'B-KnowBe4', buyPrice: 2.45, sellPrice: 9.00, serviceOffering: 'Security Training', functionOfProduct: 'Equip employees to be the first line of defence', cyberBenefit: 'Practice good cybersecurity habits and reduce breach risks' },
+  // CYBER Assure
+  { category: "CYBER Assure", class: "Compliance & Governance", code: "CAS-01", supplier: "Cyber Protection Group", buyPrice: 15.00, sellPrice: 30.00, service: "Cyber Essentials Prep", function: "Prepares organization for CE certification", benefit: "Ensures compliance with national cyber baselines" },
+  { category: "CYBER Assure", class: "Compliance & Governance", code: "CAS-02", supplier: "Cyber Protection Group", buyPrice: 25.00, sellPrice: 50.00, service: "Cyber Essentials Plus Audit", function: "Hands-on technical verification audit", benefit: "Provides verified security posture status" },
+  { category: "CYBER Assure", class: "Policy & Framework", code: "CAS-03", supplier: "Cyber Protection Group", buyPrice: 10.00, sellPrice: 20.00, service: "Policy Development", function: "Drafts tailored security policies", benefit: "Establishes clear operational security rules" },
+  { category: "CYBER Assure", class: "Policy & Framework", code: "CAS-04", supplier: "Cyber Protection Group", buyPrice: null, sellPrice: null, service: "Custom Risk Assessment", function: "Evaluates infrastructure risk levels", benefit: "Identifies hidden security gaps" },
+  { category: "CYBER Assure", class: "Staff Security", code: "CAS-05", supplier: "KnowBe4", buyPrice: 2.00, sellPrice: 4.50, service: "Phishing Simulation", function: "Sends test phishing emails to staff", benefit: "Reduces likelihood of human error breaches" },
+  { category: "CYBER Assure", class: "Staff Security", code: "CAS-06", supplier: "KnowBe4", buyPrice: 3.00, sellPrice: 6.00, service: "Security Awareness Training", function: "Delivers interactive video training", benefit: "Builds a security-conscious company culture" },
+  { category: "CYBER Assure", class: "Staff Security", code: "CAS-07", supplier: "KnowBe4", buyPrice: 4.00, sellPrice: 9.63, service: "Advanced Security Awareness", function: "Comprehensive compliance & security training", benefit: "Meets strict industry security awareness standards" },
+  { category: "CYBER Assure", class: "Governance", code: "CAS-08", supplier: "Cyber Protection Group", buyPrice: 50.00, sellPrice: 100.00, service: "Virtual CISO", function: "Executive level security guidance", benefit: "Strategic leadership without hiring full-time CISO" },
+  { category: "CYBER Assure", class: "Governance", code: "CAS-09", supplier: "Cyber Protection Group", buyPrice: 30.00, sellPrice: 60.00, service: "Third Party Risk Audit", function: "Assesses supplier risk profiles", benefit: "Protects supply chain access vectors" },
+  { category: "CYBER Assure", class: "Governance", code: "CAS-10", supplier: "Cyber Protection Group", buyPrice: 40.00, sellPrice: 80.00, service: "GDPR Compliance Review", function: "Audits data privacy practices", benefit: "Mitigates regulatory fine risks" },
 
-    // CYBER Backup
-    { category: 'CYBER Backup', code: 'CB-01', classification: 'Office 365 Backup / Gmail', supplier: 'B-Redstor', buyPrice: 1.65, sellPrice: 2.31, serviceOffering: 'Backup of Mail, OneDrive, SharePoint, OneNote, Teams', functionOfProduct: 'Gives control over all storage and controls exfiltration', cyberBenefit: 'Backup of Mail, OneDrive, SharePoint, OneNote, Teams' },
-    { category: 'CYBER Backup', code: 'CB-02', classification: 'Backup Product CB-02', supplier: 'Pending', buyPrice: null, sellPrice: null, serviceOffering: 'Pending Data', functionOfProduct: 'Pending Data', cyberBenefit: 'Pending Data' },
-    { category: 'CYBER Backup', code: 'CB-03', classification: 'Backup Product CB-03', supplier: 'Pending', buyPrice: null, sellPrice: null, serviceOffering: 'Pending Data', functionOfProduct: 'Pending Data', cyberBenefit: 'Pending Data' },
-    { category: 'CYBER Backup', code: 'CB-04', classification: 'Backup Product CB-04', supplier: 'Pending', buyPrice: null, sellPrice: null, serviceOffering: 'Pending Data', functionOfProduct: 'Pending Data', cyberBenefit: 'Pending Data' },
-    { category: 'CYBER Backup', code: 'CB-05', classification: 'Backup Product CB-05', supplier: 'Pending', buyPrice: null, sellPrice: null, serviceOffering: 'Pending Data', functionOfProduct: 'Pending Data', cyberBenefit: 'Pending Data' },
-    { category: 'CYBER Backup', code: 'CB-06', classification: 'Backup Product CB-06', supplier: 'Pending', buyPrice: null, sellPrice: null, serviceOffering: 'Pending Data', functionOfProduct: 'Pending Data', cyberBenefit: 'Pending Data' },
-    { category: 'CYBER Backup', code: 'CB-07', classification: 'Backup Product CB-07', supplier: 'Pending', buyPrice: null, sellPrice: null, serviceOffering: 'Pending Data', functionOfProduct: 'Pending Data', cyberBenefit: 'Pending Data' },
-    { category: 'CYBER Backup', code: 'CB-08', classification: 'Backup Product CB-08', supplier: 'Pending', buyPrice: null, sellPrice: null, serviceOffering: 'Pending Data', functionOfProduct: 'Pending Data', cyberBenefit: 'Pending Data' },
-    { category: 'CYBER Backup', code: 'CB-09', classification: 'Backup Product CB-09', supplier: 'Pending', buyPrice: null, sellPrice: null, serviceOffering: 'Pending Data', functionOfProduct: 'Pending Data', cyberBenefit: 'Pending Data' },
-    { category: 'CYBER Backup', code: 'CB-10', classification: 'Backup Product CB-10', supplier: 'Pending', buyPrice: null, sellPrice: null, serviceOffering: 'Pending Data', functionOfProduct: 'Pending Data', cyberBenefit: 'Pending Data' },
-    { category: 'CYBER Backup', code: 'CB-11', classification: 'Backup Product CB-11', supplier: 'Pending', buyPrice: null, sellPrice: null, serviceOffering: 'Pending Data', functionOfProduct: 'Pending Data', cyberBenefit: 'Pending Data' },
-    { category: 'CYBER Backup', code: 'CB-12', classification: 'Backup Product CB-12', supplier: 'Pending', buyPrice: null, sellPrice: null, serviceOffering: 'Pending Data', functionOfProduct: 'Pending Data', cyberBenefit: 'Pending Data' },
+  // CYBER Backup
+  { category: "CYBER Backup", class: "SaaS Backup", code: "CB-01", supplier: "Acronis", buyPrice: 1.10, sellPrice: 2.31, service: "M365 & Google Workspace Backup", function: "Automated daily cloud-to-cloud backup", benefit: "Prevents loss of emails, OneDrive, and SharePoint" },
+  { category: "CYBER Backup", class: "Endpoint Backup", code: "CB-02", supplier: "Acronis", buyPrice: 3.00, sellPrice: 6.50, service: "Workstation Cloud Backup", function: "Full system image backups for PCs", benefit: "Quick recovery from disk failure or ransomware" },
+  { category: "CYBER Backup", class: "Server Backup", code: "CB-03", supplier: "Acronis", buyPrice: 15.00, sellPrice: 32.00, service: "Server Cloud Backup", function: "Complete physical & virtual server backups", benefit: "Minimizes business downtime during disasters" },
+  { category: "CYBER Backup", class: "SaaS Backup", code: "CB-04", supplier: "OwnBackup", buyPrice: 1.80, sellPrice: 3.50, service: "Salesforce Cloud Backup", function: "Automated Salesforce CRM data backup", benefit: "Protects critical customer relationship records" },
+  { category: "CYBER Backup", class: "SaaS Backup", code: "CB-05", supplier: "Rewind", buyPrice: 4.50, sellPrice: 9.80, service: "Xero Accounting Backup", function: "Daily financial data cloud backups", benefit: "Ensures accounting records can be restored" },
 
-    // CYBER Defense
-    { category: 'CYBER Defense', code: 'CD-01', classification: 'Microsoft Computers', supplier: 'Cynet', buyPrice: 2.96, sellPrice: 8.60, serviceOffering: 'Cynet EPP', functionOfProduct: '(Next Gen) Anti-Virus Endpoint Detection', cyberBenefit: 'Automatically stop ransomware, fileless malware, and exploits' },
-    { category: 'CYBER Defense', code: 'CD-04', classification: 'Remote Desktop', supplier: 'B-Heimdal Security', buyPrice: 0.60, sellPrice: 2.50, serviceOffering: 'Remote Desktop Security', functionOfProduct: 'Secures remote access connections', cyberBenefit: 'Protects remote desktop access endpoints' },
-    { category: 'CYBER Defense', code: 'CD-06', classification: 'Email Protection', supplier: 'B-Heimdal Security', buyPrice: 1.39, sellPrice: 2.10, serviceOffering: 'Email Security', functionOfProduct: 'Technologies to prevent and detect email cyber-attacks', cyberBenefit: 'Spam, Malware, Phishing & Impersonation Protection' },
-    { category: 'CYBER Defense', code: 'CD-08', classification: 'Ransomware Encryption Protection', supplier: 'Cynet', buyPrice: null, sellPrice: null, serviceOffering: 'Ransomware Protection', functionOfProduct: 'Preventing ransomware events', cyberBenefit: 'Detect, prevent, respond to, and recover from ransomware' },
-    { category: 'CYBER Defense', code: 'CD-09', classification: 'DNS Security', supplier: 'B-Heimdal Security', buyPrice: 0.95, sellPrice: 1.43, serviceOffering: 'DNS Infrastructure Protection', functionOfProduct: 'Defending DNS infrastructure from cyberattacks', cyberBenefit: 'Blocks dangerous websites and neutralizes botnet threats' },
+  // CYBER Connect
+  { category: "CYBER Connect", class: "Network Security", code: "CC-01", supplier: "Fortinet", buyPrice: 20.00, sellPrice: 45.00, service: "Managed Firewall Service", function: "Inspects and filters incoming/outgoing network traffic", benefit: "Blocks perimeter network intrusion" },
+  { category: "CYBER Connect", class: "Secure Access", code: "CC-02", supplier: "Perimeter 81", buyPrice: 5.00, sellPrice: 10.00, service: "Zero Trust Network Access (ZTNA)", function: "Enforces identity-based network access", benefit: "Secures remote connections without traditional VPN" },
 
-    // Cyber Scan
-    { category: 'Cyber Scan', code: 'CS-01', classification: 'Dark Web Monitoring', supplier: 'B-Trillion', buyPrice: 1.25, sellPrice: 6.15, serviceOffering: 'Dark Web Monitoring', functionOfProduct: 'Scans the dark web for compromised credentials', cyberBenefit: 'Alerts on leaked credentials for prompt remediation' }
-  ];
+  // CYBER Defense
+  { category: "CYBER Defense", class: "Endpoint Defense", code: "CD-01", supplier: "Cynet", buyPrice: 8.50, sellPrice: 18.60, service: "XDR Endpoint Protection (Windows)", function: "AI-driven endpoint detection and response", benefit: "Stops advanced malware and exploits in real time" },
+  { category: "CYBER Defense", class: "Endpoint Defense", code: "CD-02", supplier: "Cynet", buyPrice: 8.50, sellPrice: 18.60, service: "XDR Server Protection", function: "Real-time threat monitoring for servers", benefit: "Protects key infrastructure servers against attacks" },
+  { category: "CYBER Defense", class: "Endpoint Defense", code: "CD-03", supplier: "Cynet", buyPrice: 8.50, sellPrice: 18.60, service: "XDR Mac Endpoint Protection", function: "Specialized threat detection for Mac endpoints", benefit: "Provides equivalent protection across Apple hardware" },
+  { category: "CYBER Defense", class: "Remote Access", code: "CD-04", supplier: "Cynet", buyPrice: 1.20, sellPrice: 2.50, service: "Secure Remote Desktop Gateway", function: "Secures RDP connections against brute force", benefit: "Prevents unauthorized desktop takeovers" },
 
-  const categories = ['CYBER App', 'CYBER Assure', 'CYBER Backup', 'CYBER Connect', 'CYBER Defense', 'Cyber Scan'];
-  let pageDiscounts = {};
-  let productSelections = {};
+  // Cyber Scan
+  { category: "Cyber Scan", class: "Threat Intelligence", code: "CS-01", supplier: "ID Agent", buyPrice: 3.10, sellPrice: 7.22, service: "Dark Web ID Monitoring", function: "Monitors dark web markets for stolen credentials", benefit: "Alerts before stolen logins lead to account takeovers" },
+  { category: "Cyber Scan", class: "Vulnerability Scanning", code: "CS-02", supplier: "Nessus", buyPrice: 12.00, sellPrice: 25.00, service: "External Vulnerability Scan", function: "Scans public IP addresses for open security holes", benefit: "Finds external entry points before hackers do" }
+];
 
-  // Initialize Data Matrix
-  cpgProductCatalog.forEach(prod => {
-    productSelections[prod.code] = {
-      selected: false,
+const categories = ["CYBER App", "CYBER Assure", "CYBER Backup", "CYBER Connect", "CYBER Defense", "Cyber Scan"];
+let activeStep = 0;
+let productState = {};
+
+// Initialize application
+document.addEventListener("DOMContentLoaded", () => {
+  initProductState();
+  renderProductPages();
+  updateStepVisibility();
+});
+
+function initProductState() {
+  cpgProductCatalog.forEach(p => {
+    productState[p.code] = {
       qty: 0,
-      customSellPrice: prod.sellPrice,
-      baseSellPrice: prod.sellPrice,
-      buyPrice: prod.buyPrice,
-      isAvailable: prod.sellPrice !== null && prod.sellPrice !== undefined
+      customSellPrice: p.sellPrice,
+      baseSellPrice: p.sellPrice
     };
   });
+}
 
-  // Render Step Views for Categories
-  function renderCategorySteps() {
-    const container = document.getElementById('categoryStepsContainer');
-    let html = '';
+function renderProductPages() {
+  const container = document.getElementById("product-pages-container");
+  container.innerHTML = "";
 
-    categories.forEach((cat, index) => {
-      const stepNum = index + 2;
-      const catProducts = cpgProductCatalog.filter(p => p.category === cat);
-      const hasDisc = (pageDiscounts[cat] || 0) > 0;
+  categories.forEach((cat, index) => {
+    const page = document.createElement("div");
+    page.className = "page-content";
+    page.id = `page-${index}`;
 
-      html += `
-        <div class="form-step" id="step-${stepNum}">
-          <div class="card">
-            <div class="section-header">
-              <h2>${cat}</h2>
-              <div class="discount-picker">
-                <label>Page Discount:</label>
-                <select id="discount-select-${stepNum}" onchange="applyPageDiscount('${cat}', this.value)">
-                  <option value="0">0%</option>
-                  <option value="10">10%</option>
-                  <option value="20">20%</option>
-                  <option value="25">25%</option>
-                  <option value="30">30%</option>
-                  <option value="40">40%</option>
-                  <option value="50">50%</option>
-                </select>
-              </div>
-            </div>
+    const items = cpgProductCatalog.filter(p => p.category === cat);
 
-            <table id="table-cat-${stepNum}">
-              <thead>
-                <tr>
-                  <th>Select</th>
-                  <th>Classification</th>
-                  <th>Code</th>
-                  <th>Supplier</th>
-                  <th>Buy Price</th>
-                  <th id="th-sell-${stepNum}" class="${hasDisc ? 'sell-header-grey' : ''}">CPG Sell Price (£)</th>
-                  ${hasDisc ? `<th id="th-disc-${stepNum}" class="disc-header-red">CPG Discounted Price (£)</th>` : ''}
-                  <th>Qty</th>
-                </tr>
-              </thead>
-              <tbody>`;
-
-      if (catProducts.length === 0) {
-        const colSpan = hasDisc ? 8 : 7;
-        html += `<tr><td colspan="${colSpan}" style="text-align:center; color:var(--text-muted);">No products currently loaded for ${cat}.</td></tr>`;
-      } else {
-        catProducts.forEach(item => {
-          const tooltip = `Service Offering: ${item.serviceOffering}\nFunction: ${item.functionOfProduct}\nCyber Benefit: ${item.cyberBenefit}`;
-          const isAvail = item.sellPrice !== null && item.sellPrice !== undefined;
-          const isTicked = productSelections[item.code].selected;
-          const buyPriceStr = item.buyPrice !== null ? `£${item.buyPrice.toFixed(2)}` : '<span class="price-na">n/a</span>';
-          
-          let sellPriceStr = '<span class="price-na">n/a</span>';
-          if (isAvail) {
-            sellPriceStr = hasDisc && isTicked ? `<span class="price-grey">£${item.sellPrice.toFixed(2)}</span>` : `£${item.sellPrice.toFixed(2)}`;
-          }
-
-          let discTd = '';
-          if (hasDisc) {
-            if (isAvail && isTicked) {
-              const discounted = item.sellPrice * (1 - (pageDiscounts[cat] / 100));
-              discTd = `<td id="disc-cell-${item.code}" class="price-discounted">£${discounted.toFixed(2)}</td>`;
-            } else {
-              discTd = `<td id="disc-cell-${item.code}" style="color:#8892b0; text-align:center;">-</td>`;
-            }
-          }
-
-          html += `
-            <tr id="row-${item.code}" style="${!isAvail ? 'opacity: 0.55;' : ''}">
-              <td><input type="checkbox" id="chk-${item.code}" ${!isAvail ? 'disabled' : ''} ${isTicked ? 'checked' : ''} onchange="toggleSelect('${item.code}', this.checked)"></td>
-              <td>${item.classification} <span class="tooltip-icon" title="${tooltip}">?</span></td>
-              <td>${item.code}</td>
-              <td>${item.supplier}</td>
-              <td>${buyPriceStr}</td>
-              <td id="price-cell-${item.code}">${sellPriceStr}</td>
-              ${discTd}
-              <td><input type="number" class="qty-input" min="0" value="${productSelections[item.code].qty}" id="qty-${item.code}" ${!isAvail ? 'disabled' : ''} oninput="updateQty('${item.code}', this.value)"></td>
-            </tr>`;
-        });
-      }
-
-      html += `
-              </tbody>
-            </table>
-          </div>
-
-          <div class="btn-group">
-            <button class="btn" onclick="goToStep(${stepNum - 1})">&larr; Previous</button>
-            <button class="btn btn-primary" onclick="goToStep(${stepNum + 1})">Next &rarr;</button>
-          </div>
-        </div>`;
-    });
-
-    container.innerHTML = html;
-  }
-
-  // Auto-Select Checkbox when Qty > 0
-  function updateQty(code, value) {
-    if (!productSelections[code].isAvailable) return;
-    const qty = parseInt(value) || 0;
-    productSelections[code].qty = qty;
-
-    if (qty > 0) {
-      productSelections[code].selected = true;
-      const chk = document.getElementById(`chk-${code}`);
-      if (chk) chk.checked = true;
-    }
-
-    const item = cpgProductCatalog.find(p => p.code === code);
-    if (item) applyPageDiscount(item.category, pageDiscounts[item.category] || 0);
-  }
-
-  // Decoupled Checkbox Toggle (Does not reset quantity to 0 when unticked)
-  function toggleSelect(code, isChecked) {
-    if (!productSelections[code].isAvailable) return;
-    productSelections[code].selected = isChecked;
-    
-    if (isChecked && productSelections[code].qty === 0) {
-      productSelections[code].qty = 1;
-      const qtyInput = document.getElementById(`qty-${code}`);
-      if (qtyInput) qtyInput.value = 1;
-    }
-
-    const item = cpgProductCatalog.find(p => p.code === code);
-    if (item) applyPageDiscount(item.category, pageDiscounts[item.category] || 0);
-  }
-
-  // Handle Page Level Discounts (Applied STRICTLY to ticked rows)
-  function applyPageDiscount(cat, discountPct) {
-    const pct = parseFloat(discountPct) || 0;
-    pageDiscounts[cat] = pct;
-
-    const catIdx = categories.indexOf(cat);
-    if (catIdx === -1) return;
-    const stepNum = catIdx + 2;
-
-    const table = document.getElementById(`table-cat-${stepNum}`);
-    if (!table) return;
-
-    const hasDiscount = pct > 0;
-    let sellHeader = document.getElementById(`th-sell-${stepNum}`);
-    let discHeader = document.getElementById(`th-disc-${stepNum}`);
-
-    // Manage Discount Column Header Addition/Removal
-    if (hasDiscount) {
-      if (sellHeader) sellHeader.classList.add('sell-header-grey');
-      if (!discHeader && sellHeader) {
-        discHeader = document.createElement('th');
-        discHeader.id = `th-disc-${stepNum}`;
-        discHeader.className = 'disc-header-red';
-        discHeader.textContent = 'CPG Discounted Price (£)';
-        sellHeader.insertAdjacentElement('afterend', discHeader);
-      }
-    } else {
-      if (sellHeader) sellHeader.classList.remove('sell-header-grey');
-      if (discHeader) discHeader.remove();
-    }
-
-    // Update Product Rows based on Ticked state
-    const catProducts = cpgProductCatalog.filter(p => p.category === cat);
-    catProducts.forEach(item => {
-      const isAvail = item.sellPrice !== null && item.sellPrice !== undefined;
-      const isTicked = productSelections[item.code].selected;
+    let html = `
+      <div class="section-title">
+        <h2>${cat} Section</h2>
+      </div>
+      <p class="section-desc">Select quantities and customize pricing for ${cat} offerings.</p>
       
-      const priceCell = document.getElementById(`price-cell-${item.code}`);
-      let discCell = document.getElementById(`disc-cell-${item.code}`);
+      <div class="discount-toolbar">
+        <label><strong>Section Discount:</strong></label>
+        <select onchange="applyCategoryDiscount('${cat}', this.value)">
+          <option value="0">0% Discount</option>
+          <option value="10">10% Discount</option>
+          <option value="20">20% Discount</option>
+          <option value="25">25% Discount</option>
+          <option value="30">30% Discount</option>
+          <option value="40">40% Discount</option>
+          <option value="50">50% Discount</option>
+        </select>
+      </div>
 
-      if (!isAvail) return;
+      <div class="table-responsive">
+        <table>
+          <thead>
+            <tr>
+              <th>Protection Classification</th>
+              <th>Product Code</th>
+              <th>Product Supplier</th>
+              <th>CPG Monthly Buy Price</th>
+              <th>CPG Monthly Sell Price</th>
+              <th style="width: 100px;">Quantity</th>
+            </tr>
+          </thead>
+          <tbody>
+    `;
 
-      if (hasDiscount) {
-        if (isTicked) {
-          const discounted = item.sellPrice * (1 - pct / 100);
-          productSelections[item.code].customSellPrice = discounted;
+    items.forEach(item => {
+      const isMissingPrice = item.buyPrice === null;
+      const tooltipText = `Service Offering: ${item.service}\nFunction: ${item.function}\nBenefit: ${item.benefit}`;
 
-          if (priceCell) priceCell.innerHTML = `<span class="price-grey">£${item.sellPrice.toFixed(2)}</span>`;
-
-          if (!discCell && priceCell) {
-            discCell = document.createElement('td');
-            discCell.id = `disc-cell-${item.code}`;
-            discCell.className = 'price-discounted';
-            discCell.innerText = `£${discounted.toFixed(2)}`;
-            priceCell.insertAdjacentElement('afterend', discCell);
-          } else if (discCell) {
-            discCell.className = 'price-discounted';
-            discCell.style.textAlign = 'left';
-            discCell.innerText = `£${discounted.toFixed(2)}`;
-          }
-        } else {
-          productSelections[item.code].customSellPrice = item.sellPrice;
-
-          if (priceCell) priceCell.innerText = `£${item.sellPrice.toFixed(2)}`;
-
-          if (!discCell && priceCell) {
-            discCell = document.createElement('td');
-            discCell.id = `disc-cell-${item.code}`;
-            discCell.style.color = '#8892b0';
-            discCell.style.textAlign = 'center';
-            discCell.innerText = '-';
-            priceCell.insertAdjacentElement('afterend', discCell);
-          } else if (discCell) {
-            discCell.className = '';
-            discCell.style.color = '#8892b0';
-            discCell.style.textAlign = 'center';
-            discCell.innerText = '-';
-          }
-        }
-      } else {
-        productSelections[item.code].customSellPrice = item.sellPrice;
-        if (priceCell) priceCell.innerText = `£${item.sellPrice.toFixed(2)}`;
-        if (discCell) discCell.remove();
-      }
-    });
-  }
-
-  // Step Navigation Engine
-  function goToStep(stepNum) {
-    document.querySelectorAll('.form-step').forEach(step => step.classList.remove('active'));
-    document.querySelectorAll('.step-indicator').forEach((ind, idx) => {
-      if (idx + 1 === stepNum) ind.classList.add('active');
-      else ind.classList.remove('active');
-    });
-
-    const target = document.getElementById(`step-${stepNum}`);
-    if (target) target.classList.add('active');
-
-    if (stepNum === 8) renderSummary();
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }
-
-  // Autofill Demo Information
-  function populateTestData() {
-    document.getElementById('companyName').value = "Cyber Protection Group Partner";
-    document.getElementById('contactName').value = "Alex Turner";
-    document.getElementById('contactEmail').value = "alex.turner@cpg-example.co.uk";
-  }
-
-  // Build Summary View
-  function renderSummary() {
-    const compName = document.getElementById('companyName').value || 'N/A';
-    const quoteNum = document.getElementById('quoteNumber').value || 'N/A';
-
-    let html = `<p><strong>Company:</strong> ${compName} | <strong>Quote Ref:</strong> ${quoteNum}</p><br>`;
-    html += `<table><thead><tr><th>Product Code</th><th>Description</th><th>Qty</th><th>Unit Price</th><th>Subtotal</th></tr></thead><tbody>`;
-
-    let total = 0;
-    Object.keys(productSelections).forEach(code => {
-      const item = productSelections[code];
-      if (item.selected && item.qty > 0 && item.isAvailable) {
-        const prod = cpgProductCatalog.find(p => p.code === code);
-        const subtotal = item.qty * item.customSellPrice;
-        total += subtotal;
-
-        html += `
-          <tr>
-            <td>${code}</td>
-            <td>${prod ? prod.classification : ''}</td>
-            <td>${item.qty}</td>
-            <td>£${item.customSellPrice.toFixed(2)}</td>
-            <td>£${subtotal.toFixed(2)}</td>
-          </tr>`;
-      }
+      html += `
+        <tr>
+          <td>
+            <span class="has-tooltip" data-tooltip="${tooltipText}">
+              ${item.class}
+            </span>
+          </td>
+          <td><strong>${item.code}</strong></td>
+          <td>${item.supplier}</td>
+          <td>${isMissingPrice ? '<span class="badge-na">n/a</span>' : '£' + item.buyPrice.toFixed(2)}</td>
+          <td>
+            ${isMissingPrice ? '<span class="badge-na">n/a</span>' : `
+              £<input type="number" step="0.01" style="width: 80px;" id="sell-${item.code}" 
+                value="${item.sellPrice.toFixed(2)}" 
+                onchange="updateCustomSellPrice('${item.code}', this.value)">
+            `}
+          </td>
+          <td>
+            <input type="number" min="0" value="0" style="width: 70px;" 
+              id="qty-${item.code}"
+              class="${isMissingPrice ? 'input-disabled' : ''}" 
+              ${isMissingPrice ? 'disabled' : ''} 
+              onchange="updateQuantity('${item.code}', this.value)">
+          </td>
+        </tr>
+      `;
     });
 
-    html += `</tbody></table><h3 style="margin-top:15px; text-align:right; color:var(--accent);">Total: £${total.toFixed(2)} / mo</h3>`;
-    document.getElementById('quoteSummaryOutput').innerHTML = html;
-  }
+    html += `
+          </tbody>
+        </table>
+      </div>
+    `;
 
-  // PDF Export Engine
-  function downloadQuotePDF() {
-    const compName = document.getElementById('companyName').value || 'Customer';
-    const quoteNum = document.getElementById('quoteNumber').value || 'QU-1001';
-    const filename = `${compName} ${quoteNum}.pdf`;
-
-    const element = document.getElementById('quoteSummaryOutput');
-    const opt = {
-      margin:       0.5,
-      filename:     filename,
-      image:        { type: 'jpeg', quality: 0.98 },
-      html2canvas:  { scale: 2 },
-      jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
-    };
-
-    html2pdf().set(opt).from(element).save();
-  }
-
-  // Document Ready Initialization
-  document.addEventListener('DOMContentLoaded', () => {
-    renderCategorySteps();
+    page.innerHTML = html;
+    container.appendChild(page);
   });
-</script>
+}
 
+function updateQuantity(code, value) {
+  const q = parseInt(value) || 0;
+  productState[code].qty = q;
+}
+
+function updateCustomSellPrice(code, val) {
+  const newPrice = parseFloat(val);
+  const basePrice = productState[code].baseSellPrice;
+  const minPrice = basePrice * 0.5;
+
+  if (isNaN(newPrice) || newPrice < minPrice) {
+    alert(`Discount limit reached. Selling price cannot be reduced below £${minPrice.toFixed(2)} (max 50% discount).`);
+    document.getElementById(`sell-${code}`).value = productState[code].customSellPrice.toFixed(2);
+    return;
+  }
+  productState[code].customSellPrice = newPrice;
+}
+
+function applyCategoryDiscount(cat, discountPct) {
+  const pct = parseFloat(discountPct) / 100;
+  cpgProductCatalog.filter(p => p.category === cat).forEach(p => {
+    if (p.buyPrice !== null) {
+      const original = p.sellPrice;
+      const discounted = original * (1 - pct);
+      productState[p.code].customSellPrice = discounted;
+      const el = document.getElementById(`sell-${p.code}`);
+      if (el) el.value = discounted.toFixed(2);
+    }
+  });
+}
+
+function applyGlobalDiscount(discountPct) {
+  const pct = parseFloat(discountPct) / 100;
+  cpgProductCatalog.forEach(p => {
+    if (p.buyPrice !== null) {
+      const original = p.sellPrice;
+      const discounted = original * (1 - pct);
+      productState[p.code].customSellPrice = discounted;
+      const el = document.getElementById(`sell-${p.code}`);
+      if (el) el.value = discounted.toFixed(2);
+    }
+  });
+  renderSummaryTable();
+}
+
+function populateTestData() {
+  document.getElementById("cust-company").value = "South Essex Sealed Units LTD";
+  document.getElementById("cust-attention").value = "Carl Hicks";
+  document.getElementById("cust-phone").value = "+44 1234 567890";
+  document.getElementById("quote-number").value = "QU-1006";
+  document.getElementById("quote-ref").value = "Reference: MBCH-01";
+  document.getElementById("cust-addr1").value = "UNIT 2 BEAVER ROAD";
+  document.getElementById("cust-addr2").value = "HAINAULT BUSINESS PARK";
+  document.getElementById("cust-city").value = "HAINAULT, ESSEX";
+  document.getElementById("cust-postcode").value = "IG6 3UT";
+
+  // Assign demo quantities
+  const sampleQtys = { "CD-01": 10, "CB-01": 10, "CAS-07": 10, "CA-01": 5 };
+  for (const [code, qty] of Object.entries(sampleQtys)) {
+    productState[code].qty = qty;
+    const inputEl = document.getElementById(`qty-${code}`);
+    if (inputEl) inputEl.value = qty;
+  }
+
+  alert("Test Data successfully populated!");
+}
+
+function changeStep(direction) {
+  const totalSteps = 8;
+  const newStep = activeStep + direction;
+
+  if (newStep >= 0 && newStep < totalSteps) {
+    activeStep = newStep;
+    updateStepVisibility();
+  }
+}
+
+function updateStepVisibility() {
+  document.querySelectorAll(".page-content").forEach((page, i) => {
+    page.classList.toggle("active", i === activeStep);
+  });
+
+  document.querySelectorAll(".step-node").forEach((node, i) => {
+    node.classList.toggle("active", i === activeStep);
+    node.classList.toggle("completed", i < activeStep);
+  });
+
+  document.getElementById("btn-prev").style.display = activeStep === 0 ? "none" : "inline-flex";
+  
+  if (activeStep === 7) {
+    document.getElementById("btn-next").style.display = "none";
+    document.getElementById("btn-export").style.display = "inline-flex";
+    renderSummaryTable();
+  } else {
+    document.getElementById("btn-next").style.display = "inline-flex";
+    document.getElementById("btn-export").style.display = "none";
+  }
+}
+
+function renderSummaryTable() {
+  const container = document.getElementById("summary-table-container");
+  let totalMonthly = 0;
+
+  let html = `
+    <table>
+      <thead>
+        <tr>
+          <th>Code</th>
+          <th>Classification</th>
+          <th>Supplier</th>
+          <th>Unit Price</th>
+          <th>Qty</th>
+          <th>Total Price</th>
+        </tr>
+      </thead>
+      <tbody>
+  `;
+
+  let selectedItemsCount = 0;
+
+  cpgProductCatalog.forEach(p => {
+    const state = productState[p.code];
+    if (state.qty > 0) {
+      selectedItemsCount++;
+      const lineTotal = state.qty * state.customSellPrice;
+      totalMonthly += lineTotal;
+
+      html += `
+        <tr>
+          <td><strong>${p.code}</strong></td>
+          <td>${p.class}</td>
+          <td>${p.supplier}</td>
+          <td>£${state.customSellPrice.toFixed(2)}</td>
+          <td>${state.qty}</td>
+          <td><strong>£${lineTotal.toFixed(2)}</strong></td>
+        </tr>
+      `;
+    }
+  });
+
+  if (selectedItemsCount === 0) {
+    html += `<tr><td colspan="6" style="text-align:center; padding: 20px; color: var(--cpg-text-muted);">No products selected. Please return to previous steps to add products.</td></tr>`;
+  } else {
+    html += `
+      <tr style="background: #edf2f7; font-size: 1rem;">
+        <td colspan="5" style="text-align: right;"><strong>Total Monthly Cost:</strong></td>
+        <td><strong style="color: var(--cpg-cyan);">£${totalMonthly.toFixed(2)}</strong></td>
+      </tr>
+    `;
+  }
+
+  html += `</tbody></table>`;
+  container.innerHTML = html;
+}
+
+function downloadPDF() {
+  const compName = document.getElementById("cust-company").value || "Customer";
+  const quoteNum = document.getElementById("quote-number").value || "QU-1000";
+  const filename = `${compName} ${quoteNum}.pdf`;
+
+  const element = document.createElement("div");
+  element.style.padding = "20px";
+  element.style.fontFamily = "Arial, sans-serif";
+
+  element.innerHTML = `
+    <div style="border-bottom: 2px solid #034078; padding-bottom: 10px; margin-bottom: 20px;">
+      <h1 style="color: #0a1128; margin: 0;">Cyber Protection Group</h1>
+      <p style="color: #1282a2; margin: 0;">Official Cyber Security Proposal</p>
+    </div>
+
+    <div style="margin-bottom: 20px;">
+      <h3>Customer Details</h3>
+      <p><strong>Company:</strong> ${compName}</p>
+      <p><strong>Attention:</strong> ${document.getElementById("cust-attention").value}</p>
+      <p><strong>Phone:</strong> ${document.getElementById("cust-phone").value}</p>
+      <p><strong>Quote Ref:</strong> ${document.getElementById("quote-ref").value} | <strong>Quote #:</strong> ${quoteNum}</p>
+      <p><strong>Address:</strong> ${document.getElementById("cust-addr1").value}, ${document.getElementById("cust-addr2").value}, ${document.getElementById("cust-city").value}, ${document.getElementById("cust-postcode").value}</p>
+    </div>
+
+    <h3>Selected Security Services</h3>
+    ${document.getElementById("summary-table-container").innerHTML}
+  `;
+
+  const opt = {
+    margin: 0.5,
+    filename: filename,
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2 },
+    jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+  };
+
+  html2pdf().set(opt).from(element).save();
+}
+
+function closeModal() {
+  document.getElementById("pdf-modal").style.display = "none";
+}
+</script>
 </body>
 </html>
