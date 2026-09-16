@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cyber Protection Group - Quote Builder</title>
+  <title>Cyber Protection Group - Interactive Quote Tool</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <style>
     :root {
@@ -13,22 +13,23 @@
       --cpg-cyan: #1282a2;
       --cpg-accent: #00d4ff;
       --cpg-light: #f4f7f6;
-      --cpg-card-bg: rgba(255, 255, 255, 0.95);
-      --cpg-text-dark: #1c2541;
-      --cpg-text-muted: #5c677d;
-      --cpg-border: #e0e6ed;
+      --cpg-card-bg: #0d1b2a;
+      --cpg-text-light: #e0e6ed;
+      --cpg-text-muted: #8892b0;
+      --cpg-border: #1e293b;
+      --cpg-danger: #ff4d4d;
     }
 
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
 
     body {
-      background: linear-gradient(135deg, var(--cpg-navy) 0%, var(--cpg-dark-blue) 100%);
-      color: var(--cpg-text-dark);
+      background: linear-gradient(135deg, var(--cpg-navy) 0%, #020c1b 100%);
+      color: var(--cpg-text-light);
       min-height: 100vh;
       display: flex;
       justify-content: center;
@@ -38,22 +39,22 @@
 
     .app-container {
       width: 100%;
-      max-width: 1100px;
-      background: var(--cpg-card-bg);
-      border-radius: 16px;
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+      max-width: 1150px;
+      background: rgba(13, 27, 42, 0.95);
+      border: 1px solid var(--cpg-border);
+      border-radius: 12px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
       backdrop-filter: blur(10px);
       overflow: hidden;
       display: flex;
       flex-direction: column;
     }
 
-    /* Header & Progress Bar */
     .app-header {
       background: var(--cpg-navy);
       color: #fff;
-      padding: 24px;
-      border-bottom: 3px solid var(--cpg-accent);
+      padding: 20px 30px;
+      border-bottom: 2px solid var(--cpg-cyan);
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -62,95 +63,127 @@
     .app-header h1 {
       font-size: 1.5rem;
       font-weight: 700;
-      letter-spacing: 0.5px;
     }
 
     .app-header h1 span {
       color: var(--cpg-accent);
     }
 
+    /* Clickable Top Navigation Bar */
     .progress-bar {
       display: flex;
       background: #00122e;
-      padding: 10px 20px;
-      gap: 10px;
+      padding: 10px 15px;
+      gap: 8px;
       overflow-x: auto;
+      border-bottom: 1px solid var(--cpg-border);
     }
 
     .step-node {
       flex: 1;
       text-align: center;
-      padding: 8px 12px;
-      font-size: 0.8rem;
+      padding: 10px 14px;
+      font-size: 0.82rem;
       font-weight: 600;
-      color: rgba(255, 255, 255, 0.5);
-      background: rgba(255, 255, 255, 0.05);
+      color: var(--cpg-text-muted);
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.05);
       border-radius: 6px;
       white-space: nowrap;
-      transition: all 0.3s ease;
+      cursor: pointer;
+      transition: all 0.25 ease;
+      user-select: none;
+    }
+
+    .step-node:hover {
+      background: rgba(18, 130, 162, 0.2);
+      color: #fff;
     }
 
     .step-node.active {
       color: #fff;
       background: var(--cpg-cyan);
-      box-shadow: 0 0 10px rgba(18, 130, 162, 0.5);
+      border-color: var(--cpg-accent);
+      box-shadow: 0 0 12px rgba(0, 214, 255, 0.3);
     }
 
     .step-node.completed {
       color: var(--cpg-accent);
-      background: rgba(0, 212, 255, 0.1);
     }
 
-    /* Page View Transitions */
     .page-content {
       padding: 30px;
       display: none;
-      animation: fadeIn 0.4s ease-in-out forwards;
     }
 
     .page-content.active {
       display: block;
+      animation: fadeIn 0.3s ease-in-out forwards;
     }
 
     @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
+      from { opacity: 0; transform: translateY(6px); }
       to { opacity: 1; transform: translateY(0); }
     }
 
-    /* Section Header */
     .section-title {
-      font-size: 1.4rem;
-      color: var(--cpg-navy);
+      font-size: 1.3rem;
+      color: #fff;
       margin-bottom: 6px;
       display: flex;
       justify-content: space-between;
       align-items: center;
+      border-bottom: 1px solid var(--cpg-border);
+      padding-bottom: 10px;
     }
 
     .section-desc {
-      font-size: 0.9rem;
+      font-size: 0.88rem;
       color: var(--cpg-text-muted);
       margin-bottom: 20px;
+      margin-top: 8px;
     }
 
-    /* Discount Toolbar */
-    .discount-toolbar {
-      background: #edf2f7;
-      padding: 12px 16px;
-      border-radius: 8px;
-      margin-bottom: 20px;
+    /* Form Grid for Customer Info */
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 18px;
+      margin-bottom: 25px;
+    }
+
+    .form-group {
       display: flex;
-      align-items: center;
-      gap: 15px;
-      font-size: 0.88rem;
+      flex-direction: column;
+      gap: 6px;
     }
 
-    .discount-toolbar select {
-      padding: 6px 12px;
-      border-radius: 6px;
-      border: 1px solid #cbd5e0;
+    .form-group label {
+      font-size: 0.85rem;
       font-weight: 600;
-      color: var(--cpg-navy);
+      color: var(--cpg-text-light);
+    }
+
+    input[type="text"], input[type="tel"], input[type="number"], select {
+      width: 100%;
+      padding: 10px 14px;
+      background: #00122e;
+      border: 1px solid #1e293b;
+      border-radius: 6px;
+      color: #fff;
+      outline: none;
+      transition: border 0.2s, box-shadow 0.2s;
+    }
+
+    input:focus, select:focus {
+      border-color: var(--cpg-cyan);
+      box-shadow: 0 0 8px rgba(0, 214, 255, 0.25);
+    }
+
+    .readonly-price {
+      background: #040d1a !important;
+      color: var(--cpg-text-muted);
+      border-color: #162235 !important;
     }
 
     /* Modern Table Styling */
@@ -165,52 +198,35 @@
       width: 100%;
       border-collapse: collapse;
       text-align: left;
-      font-size: 0.9rem;
+      font-size: 0.88rem;
     }
 
     th {
-      background: var(--cpg-blue);
-      color: #fff;
+      background: #00193b;
+      color: var(--cpg-cyan);
       padding: 12px 14px;
       font-weight: 600;
+      border-bottom: 2px solid var(--cpg-border);
+      white-space: nowrap;
     }
 
     td {
       padding: 12px 14px;
       border-bottom: 1px solid var(--cpg-border);
       vertical-align: middle;
+      background: rgba(13, 27, 42, 0.6);
     }
 
-    tr:hover {
-      background-color: rgba(18, 130, 162, 0.05);
+    tr:hover td {
+      background: rgba(18, 130, 162, 0.08);
     }
 
-    /* Input Controls */
-    input[type="number"], input[type="text"], input[type="tel"], select {
-      width: 100%;
-      padding: 8px 12px;
-      border: 1px solid #cbd5e0;
-      border-radius: 6px;
-      outline: none;
-      transition: border 0.2s;
-    }
-
-    input:focus, select:focus {
-      border-color: var(--cpg-cyan);
-      box-shadow: 0 0 0 3px rgba(18, 130, 162, 0.15);
-    }
-
-    .input-disabled {
-      background-color: #edf2f7;
-      color: #a0aec0;
-      cursor: not-allowed;
-    }
-
-    /* Tooltip */
+    /* Tooltip styling */
     .has-tooltip {
       position: relative;
       cursor: help;
-      text-decoration: underline dotted var(--cpg-cyan);
+      color: var(--cpg-accent);
+      text-decoration: underline dotted;
     }
 
     .has-tooltip:hover::after {
@@ -218,41 +234,51 @@
       position: absolute;
       bottom: 125%;
       left: 0;
-      width: 280px;
-      background: var(--cpg-navy);
+      width: 290px;
+      background: #00122e;
       color: #fff;
-      padding: 10px;
+      padding: 12px;
+      border: 1px solid var(--cpg-cyan);
       border-radius: 6px;
       font-size: 0.78rem;
       white-space: pre-wrap;
-      z-index: 100;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+      z-index: 1000;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.4);
     }
 
-    /* Customer Form Grid */
-    .form-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-      gap: 16px;
-      margin-bottom: 20px;
-    }
-
-    .form-group {
+    /* Bottom Discount Toolbar */
+    .discount-toolbar-bottom {
+      background: #001533;
+      padding: 15px 20px;
+      border: 1px solid var(--cpg-border);
+      border-radius: 8px;
+      margin-top: 15px;
+      margin-bottom: 15px;
       display: flex;
-      flex-direction: column;
-      gap: 6px;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
     }
 
-    .form-group label {
+    .radio-group {
+      display: flex;
+      gap: 15px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .radio-group label {
       font-size: 0.85rem;
-      font-weight: 600;
-      color: var(--cpg-text-dark);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
     }
 
-    /* Navigation Controls */
     .action-bar {
       padding: 20px 30px;
-      background: #f8fafc;
+      background: #00122e;
       border-top: 1px solid var(--cpg-border);
       display: flex;
       justify-content: space-between;
@@ -261,7 +287,7 @@
 
     .btn {
       padding: 10px 22px;
-      border-radius: 8px;
+      border-radius: 6px;
       border: none;
       font-weight: 600;
       cursor: pointer;
@@ -269,117 +295,53 @@
       display: inline-flex;
       align-items: center;
       gap: 8px;
+      font-size: 0.88rem;
     }
 
-    .btn-primary {
-      background: var(--cpg-cyan);
-      color: #fff;
-    }
+    .btn-primary { background: var(--cpg-cyan); color: #fff; }
+    .btn-primary:hover { background: #0f6c87; }
+    .btn-secondary { background: #1e293b; color: var(--cpg-text-light); }
+    .btn-secondary:hover { background: #334155; }
+    .btn-demo { background: #7c3aed; color: #fff; }
+    .btn-demo:hover { background: #6d28d9; }
+    .btn-success { background: #10b981; color: #fff; }
+    .btn-success:hover { background: #059669; }
 
-    .btn-primary:hover {
-      background: #0f6c87;
-      transform: translateY(-1px);
-    }
-
-    .btn-secondary {
-      background: #e2e8f0;
-      color: var(--cpg-text-dark);
-    }
-
-    .btn-secondary:hover {
-      background: #cbd5e0;
-    }
-
-    .btn-demo {
-      background: #8b5cf6;
-      color: #fff;
-    }
-
-    .btn-demo:hover {
-      background: #7c3aed;
-    }
-
-    .btn-success {
-      background: #10b981;
-      color: #fff;
-    }
-
-    .btn-success:hover {
-      background: #059669;
-    }
-
-    .badge-na {
-      color: #e53e3e;
-      font-weight: 600;
-      font-size: 0.8rem;
-    }
-
-    /* Modal */
-    .modal {
-      display: none;
-      position: fixed;
-      top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0, 0, 0, 0.7);
-      z-index: 1000;
-      justify-content: center;
-      align-items: center;
-    }
-
-    .modal-content {
-      background: #fff;
-      width: 90%;
-      max-width: 800px;
-      max-height: 85vh;
-      overflow-y: auto;
-      padding: 30px;
-      border-radius: 12px;
-      position: relative;
-    }
-
-    .close-modal {
-      position: absolute;
-      top: 15px; right: 20px;
-      font-size: 1.5rem;
-      cursor: pointer;
-    }
+    .badge-na { color: var(--cpg-danger); font-weight: 600; }
   </style>
 </head>
 <body>
 
 <div class="app-container">
-  <!-- Application Header -->
   <header class="app-header">
     <h1>Cyber Protection Group <span>Quote Tool</span></h1>
   </header>
 
-  <!-- Step Tracker -->
+  <!-- Clickable Step Navigation Bar -->
   <div class="progress-bar" id="progress-bar">
-    <div class="step-node active" id="node-0">1. CYBER App</div>
-    <div class="step-node" id="node-1">2. CYBER Assure</div>
-    <div class="step-node" id="node-2">3. CYBER Backup</div>
-    <div class="step-node" id="node-3">4. CYBER Connect</div>
-    <div class="step-node" id="node-4">5. CYBER Defense</div>
-    <div class="step-node" id="node-5">6. Cyber Scan</div>
-    <div class="step-node" id="node-6">7. Customer Details</div>
-    <div class="step-node" id="node-7">8. Final Review</div>
+    <div class="step-node active" id="node-0" onclick="goToStep(0)">1. Customer Details</div>
+    <div class="step-node" id="node-1" onclick="goToStep(1)">2. CYBER App</div>
+    <div class="step-node" id="node-2" onclick="goToStep(2)">3. CYBER Assure</div>
+    <div class="step-node" id="node-3" onclick="goToStep(3)">4. CYBER Backup</div>
+    <div class="step-node" id="node-4" onclick="goToStep(4)">5. CYBER Connect</div>
+    <div class="step-node" id="node-5" onclick="goToStep(5)">6. CYBER Defense</div>
+    <div class="step-node" id="node-6" onclick="goToStep(6)">7. Cyber Scan</div>
+    <div class="step-node" id="node-7" onclick="goToStep(7)">8. Summary & Export</div>
   </div>
 
   <form id="quote-form" onsubmit="return false;">
-    <!-- DYNAMIC PRODUCT SECTIONS INJECTED BY JS HERE -->
-    <div id="product-pages-container"></div>
-
-    <!-- PAGE 7: CUSTOMER INFORMATION -->
-    <div class="page-content" id="page-6">
+    <!-- PAGE 1: CUSTOMER INFORMATION (RESTORED TO FRONT) -->
+    <div class="page-content active" id="page-0">
       <div class="section-title">
         <h2>Customer & Quote Information</h2>
         <button type="button" class="btn btn-demo" onclick="populateTestData()">⚡ Load Test Data</button>
       </div>
-      <p class="section-desc">Enter client and quote identification details below.</p>
+      <p class="section-desc">Enter client contact and address details to initialize the quote.</p>
 
       <div class="form-grid">
         <div class="form-group">
           <label for="cust-company">Company Name</label>
-          <input type="text" id="cust-company" placeholder="e.g. South Essex Sealed Units LTD" required>
+          <input type="text" id="cust-company" placeholder="e.g. South Essex Sealed Units LTD">
         </div>
         <div class="form-group">
           <label for="cust-attention">Attention Contact</label>
@@ -416,26 +378,29 @@
       </div>
     </div>
 
+    <!-- DYNAMIC PRODUCT SECTIONS CONTAINER (PAGES 2-7) -->
+    <div id="product-pages-container"></div>
+
     <!-- PAGE 8: SUMMARY & EXPORT -->
     <div class="page-content" id="page-7">
       <div class="section-title">
         <h2>Quote Summary & Export</h2>
       </div>
-      <p class="section-desc">Review selected items and export your customer quote.</p>
+      <p class="section-desc">Review selected line items and generate your PDF proposal.</p>
 
       <div id="summary-table-container" class="table-responsive"></div>
 
-      <div class="discount-toolbar" style="margin-top:15px;">
-        <label><strong>Apply Global Discount across all products:</strong></label>
-        <select onchange="applyGlobalDiscount(this.value)">
-          <option value="0">0% Discount</option>
-          <option value="10">10% Discount</option>
-          <option value="20">20% Discount</option>
-          <option value="25">25% Discount</option>
-          <option value="30">30% Discount</option>
-          <option value="40">40% Discount</option>
-          <option value="50">50% Discount</option>
-        </select>
+      <div class="discount-toolbar-bottom" id="global-discount-container" style="display:none;">
+        <label><strong>Apply Global Discount to all items:</strong></label>
+        <div class="radio-group">
+          <label><input type="radio" name="global_disc" value="0" checked onclick="applyGlobalDiscount(0)"> 0%</label>
+          <label><input type="radio" name="global_disc" value="10" onclick="applyGlobalDiscount(10)"> 10%</label>
+          <label><input type="radio" name="global_disc" value="20" onclick="applyGlobalDiscount(20)"> 20%</label>
+          <label><input type="radio" name="global_disc" value="25" onclick="applyGlobalDiscount(25)"> 25%</label>
+          <label><input type="radio" name="global_disc" value="30" onclick="applyGlobalDiscount(30)"> 30%</label>
+          <label><input type="radio" name="global_disc" value="40" onclick="applyGlobalDiscount(40)"> 40%</label>
+          <label><input type="radio" name="global_disc" value="50" onclick="applyGlobalDiscount(50)"> 50%</label>
+        </div>
       </div>
     </div>
   </form>
@@ -450,16 +415,8 @@
   </footer>
 </div>
 
-<!-- Modal Preview Container -->
-<div class="modal" id="pdf-modal">
-  <div class="modal-content">
-    <span class="close-modal" onclick="closeModal()">&times;</span>
-    <div id="pdf-template-target"></div>
-  </div>
-</div>
-
 <script>
-// Catalog master dataset matching master tab specifications
+// Master Data set matching specs
 const cpgProductCatalog = [
   // CYBER App
   { category: "CYBER App", class: "Mobile Protection", code: "CA-01", supplier: "Cynet", buyPrice: 4.50, sellPrice: 10.00, service: "Mobile Threat Defense", function: "Protects mobile devices from phishing and malware", benefit: "Secures corporate data on mobile endpoints" },
@@ -502,8 +459,8 @@ const cpgProductCatalog = [
 const categories = ["CYBER App", "CYBER Assure", "CYBER Backup", "CYBER Connect", "CYBER Defense", "Cyber Scan"];
 let activeStep = 0;
 let productState = {};
+let sectionDiscounts = {};
 
-// Initialize application
 document.addEventListener("DOMContentLoaded", () => {
   initProductState();
   renderProductPages();
@@ -513,10 +470,14 @@ document.addEventListener("DOMContentLoaded", () => {
 function initProductState() {
   cpgProductCatalog.forEach(p => {
     productState[p.code] = {
+      ticked: false,
       qty: 0,
       customSellPrice: p.sellPrice,
       baseSellPrice: p.sellPrice
     };
+  });
+  categories.forEach(cat => {
+    sectionDiscounts[cat] = 0;
   });
 }
 
@@ -527,7 +488,7 @@ function renderProductPages() {
   categories.forEach((cat, index) => {
     const page = document.createElement("div");
     page.className = "page-content";
-    page.id = `page-${index}`;
+    page.id = `page-${index + 1}`;
 
     const items = cpgProductCatalog.filter(p => p.category === cat);
 
@@ -535,31 +496,19 @@ function renderProductPages() {
       <div class="section-title">
         <h2>${cat} Section</h2>
       </div>
-      <p class="section-desc">Select quantities and customize pricing for ${cat} offerings.</p>
-      
-      <div class="discount-toolbar">
-        <label><strong>Section Discount:</strong></label>
-        <select onchange="applyCategoryDiscount('${cat}', this.value)">
-          <option value="0">0% Discount</option>
-          <option value="10">10% Discount</option>
-          <option value="20">20% Discount</option>
-          <option value="25">25% Discount</option>
-          <option value="30">30% Discount</option>
-          <option value="40">40% Discount</option>
-          <option value="50">50% Discount</option>
-        </select>
-      </div>
+      <p class="section-desc">Select quantities and adjust discount options for ${cat} products.</p>
 
       <div class="table-responsive">
-        <table>
+        <table id="table-${cat.replace(/\s+/g, '')}">
           <thead>
             <tr>
+              <th style="width: 40px;">Select</th>
               <th>Protection Classification</th>
               <th>Product Code</th>
-              <th>Product Supplier</th>
-              <th>CPG Monthly Buy Price</th>
-              <th>CPG Monthly Sell Price</th>
-              <th style="width: 100px;">Quantity</th>
+              <th>Supplier</th>
+              <th>CPG Buy Price</th>
+              <th id="th-sell-${cat.replace(/\s+/g, '')}">CPG Sell Price</th>
+              <th style="width: 90px;">Quantity</th>
             </tr>
           </thead>
           <tbody>
@@ -570,7 +519,12 @@ function renderProductPages() {
       const tooltipText = `Service Offering: ${item.service}\nFunction: ${item.function}\nBenefit: ${item.benefit}`;
 
       html += `
-        <tr>
+        <tr id="row-${item.code}">
+          <td style="text-align:center;">
+            <input type="checkbox" id="chk-${item.code}" 
+              ${isMissingPrice ? 'disabled' : ''} 
+              onchange="handleCheckboxChange('${item.code}', '${cat}')">
+          </td>
           <td>
             <span class="has-tooltip" data-tooltip="${tooltipText}">
               ${item.class}
@@ -579,19 +533,19 @@ function renderProductPages() {
           <td><strong>${item.code}</strong></td>
           <td>${item.supplier}</td>
           <td>${isMissingPrice ? '<span class="badge-na">n/a</span>' : '£' + item.buyPrice.toFixed(2)}</td>
-          <td>
+          <td id="cell-sell-${item.code}">
             ${isMissingPrice ? '<span class="badge-na">n/a</span>' : `
-              £<input type="number" step="0.01" style="width: 80px;" id="sell-${item.code}" 
+              £<input type="number" step="0.01" style="width: 85px;" id="sell-${item.code}" 
                 value="${item.sellPrice.toFixed(2)}" 
-                onchange="updateCustomSellPrice('${item.code}', this.value)">
+                onchange="updateCustomSellPrice('${item.code}', this.value, '${cat}')">
             `}
           </td>
           <td>
-            <input type="number" min="0" value="0" style="width: 70px;" 
+            <input type="number" min="0" value="0" style="width: 75px;" 
               id="qty-${item.code}"
-              class="${isMissingPrice ? 'input-disabled' : ''}" 
+              class="${isMissingPrice ? 'readonly-price' : ''}" 
               ${isMissingPrice ? 'disabled' : ''} 
-              onchange="updateQuantity('${item.code}', this.value)">
+              onchange="handleQuantityChange('${item.code}', this.value, '${cat}')">
           </td>
         </tr>
       `;
@@ -601,6 +555,20 @@ function renderProductPages() {
           </tbody>
         </table>
       </div>
+
+      <!-- BOTTOM DISCOUNT TOOLBAR RESTORED -->
+      <div class="discount-toolbar-bottom">
+        <label><strong>Section Discount for ${cat}:</strong></label>
+        <div class="radio-group">
+          <label><input type="radio" name="disc_${cat}" value="0" checked onclick="setSectionDiscount('${cat}', 0)"> 0%</label>
+          <label><input type="radio" name="disc_${cat}" value="10" onclick="setSectionDiscount('${cat}', 10)"> 10%</label>
+          <label><input type="radio" name="disc_${cat}" value="20" onclick="setSectionDiscount('${cat}', 20)"> 20%</label>
+          <label><input type="radio" name="disc_${cat}" value="25" onclick="setSectionDiscount('${cat}', 25)"> 25%</label>
+          <label><input type="radio" name="disc_${cat}" value="30" onclick="setSectionDiscount('${cat}', 30)"> 30%</label>
+          <label><input type="radio" name="disc_${cat}" value="40" onclick="setSectionDiscount('${cat}', 40)"> 40%</label>
+          <label><input type="radio" name="disc_${cat}" value="50" onclick="setSectionDiscount('${cat}', 50)"> 50%</label>
+        </div>
+      </div>
     `;
 
     page.innerHTML = html;
@@ -608,71 +576,119 @@ function renderProductPages() {
   });
 }
 
-function updateQuantity(code, value) {
-  const q = parseInt(value) || 0;
-  productState[code].qty = q;
+function handleQuantityChange(code, val, category) {
+  const qty = parseInt(val) || 0;
+  productState[code].qty = qty;
+
+  const chk = document.getElementById(`chk-${code}`);
+  if (qty > 0 && !chk.checked) {
+    chk.checked = true;
+    productState[code].ticked = true;
+  }
+  updateSectionDiscountDOM(category);
 }
 
-function updateCustomSellPrice(code, val) {
+function handleCheckboxChange(code, category) {
+  const chk = document.getElementById(`chk-${code}`);
+  productState[code].ticked = chk.checked;
+  updateSectionDiscountDOM(category);
+}
+
+function updateCustomSellPrice(code, val, category) {
   const newPrice = parseFloat(val);
   const basePrice = productState[code].baseSellPrice;
   const minPrice = basePrice * 0.5;
 
   if (isNaN(newPrice) || newPrice < minPrice) {
-    alert(`Discount limit reached. Selling price cannot be reduced below £${minPrice.toFixed(2)} (max 50% discount).`);
+    alert(`Discount threshold limit reached. Sell price cannot fall below £${minPrice.toFixed(2)} (max 50% discount).`);
     document.getElementById(`sell-${code}`).value = productState[code].customSellPrice.toFixed(2);
     return;
   }
   productState[code].customSellPrice = newPrice;
 }
 
-function applyCategoryDiscount(cat, discountPct) {
-  const pct = parseFloat(discountPct) / 100;
-  cpgProductCatalog.filter(p => p.category === cat).forEach(p => {
-    if (p.buyPrice !== null) {
-      const original = p.sellPrice;
-      const discounted = original * (1 - pct);
-      productState[p.code].customSellPrice = discounted;
-      const el = document.getElementById(`sell-${p.code}`);
-      if (el) el.value = discounted.toFixed(2);
+function setSectionDiscount(category, pct) {
+  sectionDiscounts[category] = parseFloat(pct);
+  updateSectionDiscountDOM(category);
+}
+
+function updateSectionDiscountDOM(category) {
+  const discPct = sectionDiscounts[category] || 0;
+  const tableId = `table-${category.replace(/\s+/g, '')}`;
+  const table = document.getElementById(tableId);
+  if (!table) return;
+
+  const hasDiscount = discPct > 0;
+  const catItems = cpgProductCatalog.filter(p => p.category === category);
+
+  let discHeader = table.querySelector('.disc-header-col');
+  const sellHeader = document.getElementById(`th-sell-${category.replace(/\s+/g, '')}`);
+
+  if (hasDiscount) {
+    if (sellHeader) sellHeader.style.color = '#8892b0';
+    if (!discHeader && sellHeader) {
+      discHeader = document.createElement('th');
+      discHeader.className = 'disc-header-col';
+      discHeader.style.color = 'var(--cpg-danger)';
+      discHeader.textContent = 'CPG Discounted Price (£)';
+      sellHeader.insertAdjacentElement('afterend', discHeader);
+    }
+  } else {
+    if (sellHeader) sellHeader.style.color = 'var(--cpg-cyan)';
+    if (discHeader) discHeader.remove();
+  }
+
+  catItems.forEach(prod => {
+    if (prod.buyPrice === null) return;
+
+    const row = document.getElementById(`row-${prod.code}`);
+    const sellCell = document.getElementById(`cell-sell-${prod.code}`);
+    const chk = document.getElementById(`chk-${prod.code}`);
+    let discCell = row.querySelector(`.disc-cell-${prod.code}`);
+
+    const isTicked = chk && chk.checked;
+
+    if (hasDiscount) {
+      if (isTicked) {
+        const discPrice = (productState[prod.code].customSellPrice * (1 - discPct / 100)).toFixed(2);
+        if (!discCell) {
+          discCell = document.createElement('td');
+          discCell.className = `disc-cell-${prod.code}`;
+          discCell.innerHTML = `£<input type="number" step="0.01" value="${discPrice}" readonly class="readonly-price" style="color: var(--cpg-danger); font-weight: bold; width: 85px;">`;
+          sellCell.insertAdjacentElement('afterend', discCell);
+        } else {
+          discCell.innerHTML = `£<input type="number" step="0.01" value="${discPrice}" readonly class="readonly-price" style="color: var(--cpg-danger); font-weight: bold; width: 85px;">`;
+        }
+      } else {
+        if (!discCell) {
+          discCell = document.createElement('td');
+          discCell.className = `disc-cell-${prod.code}`;
+          discCell.innerHTML = `<span style="color: var(--cpg-text-muted); display: block; text-align: center;">-</span>`;
+          sellCell.insertAdjacentElement('afterend', discCell);
+        } else {
+          discCell.innerHTML = `<span style="color: var(--cpg-text-muted); display: block; text-align: center;">-</span>`;
+        }
+      }
+    } else {
+      if (discCell) discCell.remove();
     }
   });
 }
 
-function applyGlobalDiscount(discountPct) {
-  const pct = parseFloat(discountPct) / 100;
-  cpgProductCatalog.forEach(p => {
-    if (p.buyPrice !== null) {
-      const original = p.sellPrice;
-      const discounted = original * (1 - pct);
-      productState[p.code].customSellPrice = discounted;
-      const el = document.getElementById(`sell-${p.code}`);
-      if (el) el.value = discounted.toFixed(2);
-    }
+function applyGlobalDiscount(pct) {
+  const discountPct = parseFloat(pct);
+  categories.forEach(cat => {
+    sectionDiscounts[cat] = discountPct;
+    const radio = document.querySelector(`input[name="disc_${cat}"][value="${discountPct}"]`);
+    if (radio) radio.checked = true;
+    updateSectionDiscountDOM(cat);
   });
   renderSummaryTable();
 }
 
-function populateTestData() {
-  document.getElementById("cust-company").value = "South Essex Sealed Units LTD";
-  document.getElementById("cust-attention").value = "Carl Hicks";
-  document.getElementById("cust-phone").value = "+44 1234 567890";
-  document.getElementById("quote-number").value = "QU-1006";
-  document.getElementById("quote-ref").value = "Reference: MBCH-01";
-  document.getElementById("cust-addr1").value = "UNIT 2 BEAVER ROAD";
-  document.getElementById("cust-addr2").value = "HAINAULT BUSINESS PARK";
-  document.getElementById("cust-city").value = "HAINAULT, ESSEX";
-  document.getElementById("cust-postcode").value = "IG6 3UT";
-
-  // Assign demo quantities
-  const sampleQtys = { "CD-01": 10, "CB-01": 10, "CAS-07": 10, "CA-01": 5 };
-  for (const [code, qty] of Object.entries(sampleQtys)) {
-    productState[code].qty = qty;
-    const inputEl = document.getElementById(`qty-${code}`);
-    if (inputEl) inputEl.value = qty;
-  }
-
-  alert("Test Data successfully populated!");
+function goToStep(stepIndex) {
+  activeStep = stepIndex;
+  updateStepVisibility();
 }
 
 function changeStep(direction) {
@@ -696,7 +712,7 @@ function updateStepVisibility() {
   });
 
   document.getElementById("btn-prev").style.display = activeStep === 0 ? "none" : "inline-flex";
-  
+
   if (activeStep === 7) {
     document.getElementById("btn-next").style.display = "none";
     document.getElementById("btn-export").style.display = "inline-flex";
@@ -707,9 +723,44 @@ function updateStepVisibility() {
   }
 }
 
+function populateTestData() {
+  document.getElementById("cust-company").value = "South Essex Sealed Units LTD";
+  document.getElementById("cust-attention").value = "Carl Hicks";
+  document.getElementById("cust-phone").value = "+44 1234 567890";
+  document.getElementById("quote-number").value = "QU-1006";
+  document.getElementById("quote-ref").value = "Reference: MBCH-01";
+  document.getElementById("cust-addr1").value = "UNIT 2 BEAVER ROAD";
+  document.getElementById("cust-addr2").value = "HAINAULT BUSINESS PARK";
+  document.getElementById("cust-city").value = "HAINAULT, ESSEX";
+  document.getElementById("cust-postcode").value = "IG6 3UT";
+
+  const sampleItems = { "CD-01": 10, "CB-01": 10, "CAS-07": 10, "CA-01": 5 };
+  for (const [code, qty] of Object.entries(sampleItems)) {
+    productState[code].qty = qty;
+    productState[code].ticked = true;
+    const inputEl = document.getElementById(`qty-${code}`);
+    const chkEl = document.getElementById(`chk-${code}`);
+    if (inputEl) inputEl.value = qty;
+    if (chkEl) chkEl.checked = true;
+  }
+
+  alert("Sample Customer & Product test data loaded!");
+}
+
 function renderSummaryTable() {
   const container = document.getElementById("summary-table-container");
   let totalMonthly = 0;
+  let selectedItemsCount = 0;
+  let hasAnySectionDiscount = false;
+
+  categories.forEach(cat => {
+    if (sectionDiscounts[cat] > 0) hasAnySectionDiscount = true;
+  });
+
+  const globalContainer = document.getElementById("global-discount-container");
+  if (globalContainer) {
+    globalContainer.style.display = hasAnySectionDiscount ? "none" : "flex";
+  }
 
   let html = `
     <table>
@@ -726,13 +777,13 @@ function renderSummaryTable() {
       <tbody>
   `;
 
-  let selectedItemsCount = 0;
-
   cpgProductCatalog.forEach(p => {
     const state = productState[p.code];
-    if (state.qty > 0) {
+    if (state.ticked && state.qty > 0) {
       selectedItemsCount++;
-      const lineTotal = state.qty * state.customSellPrice;
+      const discPct = sectionDiscounts[p.category] || 0;
+      const effectiveUnitPrice = state.customSellPrice * (1 - discPct / 100);
+      const lineTotal = state.qty * effectiveUnitPrice;
       totalMonthly += lineTotal;
 
       html += `
@@ -740,7 +791,7 @@ function renderSummaryTable() {
           <td><strong>${p.code}</strong></td>
           <td>${p.class}</td>
           <td>${p.supplier}</td>
-          <td>£${state.customSellPrice.toFixed(2)}</td>
+          <td>£${effectiveUnitPrice.toFixed(2)} ${discPct > 0 ? `<small style="color:var(--cpg-danger)">(${discPct}% off)</small>` : ''}</td>
           <td>${state.qty}</td>
           <td><strong>£${lineTotal.toFixed(2)}</strong></td>
         </tr>
@@ -749,12 +800,12 @@ function renderSummaryTable() {
   });
 
   if (selectedItemsCount === 0) {
-    html += `<tr><td colspan="6" style="text-align:center; padding: 20px; color: var(--cpg-text-muted);">No products selected. Please return to previous steps to add products.</td></tr>`;
+    html += `<tr><td colspan="6" style="text-align:center; padding: 20px; color: var(--cpg-text-muted);">No products selected. Click any navigation step above to add items.</td></tr>`;
   } else {
     html += `
-      <tr style="background: #edf2f7; font-size: 1rem;">
+      <tr style="background: #00193b;">
         <td colspan="5" style="text-align: right;"><strong>Total Monthly Cost:</strong></td>
-        <td><strong style="color: var(--cpg-cyan);">£${totalMonthly.toFixed(2)}</strong></td>
+        <td><strong style="color: var(--cpg-accent); font-size: 1.1rem;">£${totalMonthly.toFixed(2)}</strong></td>
       </tr>
     `;
   }
@@ -769,17 +820,19 @@ function downloadPDF() {
   const filename = `${compName} ${quoteNum}.pdf`;
 
   const element = document.createElement("div");
-  element.style.padding = "20px";
+  element.style.padding = "25px";
+  element.style.background = "#fff";
+  element.style.color = "#000";
   element.style.fontFamily = "Arial, sans-serif";
 
   element.innerHTML = `
-    <div style="border-bottom: 2px solid #034078; padding-bottom: 10px; margin-bottom: 20px;">
+    <div style="border-bottom: 2px solid #034078; padding-bottom: 12px; margin-bottom: 20px;">
       <h1 style="color: #0a1128; margin: 0;">Cyber Protection Group</h1>
-      <p style="color: #1282a2; margin: 0;">Official Cyber Security Proposal</p>
+      <p style="color: #1282a2; margin-top: 4px;">Cyber Security Proposal & Quote</p>
     </div>
 
-    <div style="margin-bottom: 20px;">
-      <h3>Customer Details</h3>
+    <div style="margin-bottom: 20px; line-height: 1.5; font-size: 0.9rem;">
+      <h3 style="color: #034078; border-bottom: 1px solid #ccc; padding-bottom: 4px;">Customer Information</h3>
       <p><strong>Company:</strong> ${compName}</p>
       <p><strong>Attention:</strong> ${document.getElementById("cust-attention").value}</p>
       <p><strong>Phone:</strong> ${document.getElementById("cust-phone").value}</p>
@@ -787,7 +840,7 @@ function downloadPDF() {
       <p><strong>Address:</strong> ${document.getElementById("cust-addr1").value}, ${document.getElementById("cust-addr2").value}, ${document.getElementById("cust-city").value}, ${document.getElementById("cust-postcode").value}</p>
     </div>
 
-    <h3>Selected Security Services</h3>
+    <h3 style="color: #034078; border-bottom: 1px solid #ccc; padding-bottom: 4px;">Selected Solutions & Services</h3>
     ${document.getElementById("summary-table-container").innerHTML}
   `;
 
@@ -800,10 +853,6 @@ function downloadPDF() {
   };
 
   html2pdf().set(opt).from(element).save();
-}
-
-function closeModal() {
-  document.getElementById("pdf-modal").style.display = "none";
 }
 </script>
 </body>
