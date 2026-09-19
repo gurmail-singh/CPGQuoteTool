@@ -1,0 +1,1347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CPG Quote Generator - Cyber Protection Group</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Font Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        cpg: {
+                            navy: '#0b192c',
+                            blue: '#1e3e62',
+                            accent: '#007aff',
+                            lightBg: '#f4f7fb',
+                            cardBorder: '#e2e8f0',
+                            brandBlue: '#1a365d',
+                            brandLightBlue: '#2b6cb0'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f4f7fb;
+            color: #1a202c;
+        }
+
+        /* Hide spin buttons on number inputs */
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { 
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
+
+        /* Custom Scrollbar for smooth scrolling */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* Print CSS for Formal Quote generation */
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #quoteModal, #quoteModal * {
+                visibility: visible;
+            }
+            #quoteModal {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                height: auto;
+                background: white !important;
+                color: black !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                overflow: visible !important;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .print-shadow-none {
+                box-shadow: none !important;
+                border: none !important;
+            }
+            .page-break {
+                page-break-after: always;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col bg-slate-100 text-slate-800">
+
+    <!-- Top Header Bar -->
+    <header class="bg-cpg-navy text-white sticky top-0 z-30 shadow-lg border-b border-slate-700">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                <!-- Brand Logo & Title -->
+                <div class="flex items-center space-x-3">
+                    <div class="bg-white p-2 rounded-lg shadow-md flex items-center justify-center">
+                        <svg class="h-9 w-auto text-cpg-navy" viewBox="0 0 400 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <!-- Castle Icon -->
+                            <path d="M10 80V35L20 25L30 35V80H10Z" fill="#1E3E62"/>
+                            <path d="M25 80V20L35 10L45 20V80H25Z" fill="#007AFF"/>
+                            <path d="M40 80V35L50 25L60 35V80H40Z" fill="#1E3E62"/>
+                            <rect x="15" y="45" width="8" height="12" fill="white" rx="4"/>
+                            <rect x="31" y="30" width="8" height="12" fill="white" rx="4"/>
+                            <rect x="47" y="45" width="8" height="12" fill="white" rx="4"/>
+                            <!-- CPG Text -->
+                            <text x="75" y="62" font-family="Arial, sans-serif" font-weight="900" font-size="54" fill="#1E3E62" letter-spacing="-2">CPG</text>
+                            <text x="76" y="85" font-family="Arial, sans-serif" font-weight="600" font-size="16" fill="#475569" letter-spacing="3.5">Cyber Protection Group</text>
+                        </svg>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold tracking-tight text-white flex items-center gap-2">
+                            Interactive Quote Generator
+                        </h1>
+                        <p class="text-xs text-slate-400">Cybersecurity Solutions & Service Calculator</p>
+                    </div>
+                </div>
+
+                <!-- Action Controls in Header -->
+                <div class="flex items-center space-x-3">
+                    <button onclick="resetAllQuantities()" class="text-slate-300 hover:text-white hover:bg-slate-800 px-3 py-2 rounded-lg text-xs font-medium transition flex items-center gap-1.5 border border-slate-700">
+                        <i class="fa-solid fa-rotate-left"></i> Reset Quantities
+                    </button>
+                    <button onclick="scrollToCustomerDetails()" class="bg-cpg-accent hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold transition shadow-md flex items-center gap-2">
+                        <i class="fa-solid fa-file-invoice"></i> View Selected (<span id="headerSelectedCount">0</span>)
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Category Navigation Menu Bar -->
+        <nav class="bg-cpg-blue border-t border-slate-700/60 overflow-x-auto">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex space-x-1 py-2 text-sm font-medium whitespace-nowrap min-w-max" id="categoryNavTabs">
+                    <!-- Dynamic Navigation Buttons injected by JS -->
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Main Workspace Container -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow w-full">
+        
+        <!-- Search & Filter Bar -->
+        <div class="mb-6 bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex flex-col sm:flex-row gap-4 items-center justify-between">
+            <div class="relative w-full sm:w-96">
+                <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                <input type="text" id="searchInput" oninput="handleSearch()" placeholder="Search products, descriptions or item codes..." 
+                       class="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-cpg-accent focus:bg-white transition">
+            </div>
+            
+            <div class="flex items-center gap-4 text-xs font-semibold text-slate-600 w-full sm:w-auto justify-end">
+                <span class="bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200">
+                    <i class="fa-solid fa-cubes text-slate-500 mr-1"></i> Total Products: <span id="totalProductsCount" class="text-slate-900 font-bold">0</span>
+                </span>
+                <span class="bg-blue-50 text-blue-700 px-3 py-1.5 rounded-lg border border-blue-200">
+                    <i class="fa-solid fa-layer-group text-blue-500 mr-1"></i> Active Category: <span id="activeCategoryName" class="font-bold">ALL</span>
+                </span>
+            </div>
+        </div>
+
+        <!-- Product Cards Grid Container -->
+        <div id="productsDisplayContainer" class="space-y-10">
+            <!-- Dynamically populated product sections grouped by Category -->
+        </div>
+
+        <!-- Customer Details & Quote Configurator Section -->
+        <section id="customerDetailsSection" class="mt-12 bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden">
+            <div class="bg-cpg-navy text-white px-6 py-4 flex items-center justify-between border-b border-slate-700">
+                <h2 class="text-lg font-bold flex items-center gap-2">
+                    <i class="fa-solid fa-address-card text-cpg-accent"></i> Customer Details & Quote Information
+                </h2>
+                <span class="text-xs bg-slate-800 text-slate-300 px-3 py-1 rounded-full border border-slate-700">QU1006 Format Compliant</span>
+            </div>
+            
+            <div class="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Customer Name & Org -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Customer / Company Name *</label>
+                    <input type="text" id="custName" value="Acme Cyber Solutions Ltd" placeholder="Enter company or client name" 
+                           class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-cpg-accent focus:bg-white outline-none">
+                </div>
+
+                <!-- Contact Email -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Contact Email *</label>
+                    <input type="email" id="custEmail" value="accounts@acme-cyber.co.uk" placeholder="billing@client.com" 
+                           class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-cpg-accent focus:bg-white outline-none">
+                </div>
+
+                <!-- Phone -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Phone Number</label>
+                    <input type="text" id="custPhone" value="+44 (0) 20 7946 0912" placeholder="+44 20 1234 5678" 
+                           class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-cpg-accent focus:bg-white outline-none">
+                </div>
+
+                <!-- Address Line 1 -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Address Line 1 *</label>
+                    <input type="text" id="custAddr1" value="Suite 404, Innovation Tower" placeholder="Street Address" 
+                           class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-cpg-accent focus:bg-white outline-none">
+                </div>
+
+                <!-- Address Line 2 -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Address Line 2 / District</label>
+                    <input type="text" id="custAddr2" value="Tech City Quarter" placeholder="Apartment, suite, unit, etc." 
+                           class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-cpg-accent focus:bg-white outline-none">
+                </div>
+
+                <!-- City & Postcode -->
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">City *</label>
+                        <input type="text" id="custCity" value="London" placeholder="City" 
+                               class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-cpg-accent focus:bg-white outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Postcode *</label>
+                        <input type="text" id="custPostcode" value="EC1V 9BD" placeholder="Postcode" 
+                               class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-cpg-accent focus:bg-white outline-none">
+                    </div>
+                </div>
+
+                <!-- Quote Ref / ID -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Quote Reference #</label>
+                    <input type="text" id="quoteRefNumber" value="QU1006" placeholder="QU1006" 
+                           class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm font-semibold focus:ring-2 focus:ring-cpg-accent focus:bg-white outline-none">
+                </div>
+
+                <!-- Quote Date -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Quote Date</label>
+                    <input type="date" id="quoteDate" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-cpg-accent focus:bg-white outline-none">
+                </div>
+
+                <!-- Terms -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Contract & Payment Terms</label>
+                    <input type="text" id="quoteTerms" value="Monthly in Advance 12 Month rolling contract" placeholder="Terms" 
+                           class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-cpg-accent focus:bg-white outline-none">
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Floating Live Calculation Summary Footer -->
+    <div class="sticky bottom-0 z-20 bg-slate-900 text-white border-t border-slate-700 shadow-2xl py-4 px-4 sm:px-8">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+            
+            <!-- Quick Summary Counters -->
+            <div class="flex items-center space-x-6 w-full md:w-auto justify-around md:justify-start">
+                <div>
+                    <span class="text-xs text-slate-400 block font-medium uppercase tracking-wider">Line Items</span>
+                    <span id="summarySelectedItems" class="text-xl font-extrabold text-blue-400">0 Items</span>
+                </div>
+                <div class="h-8 w-px bg-slate-700"></div>
+                <div>
+                    <span class="text-xs text-slate-400 block font-medium uppercase tracking-wider">Net Subtotal</span>
+                    <span id="summarySubtotal" class="text-xl font-extrabold text-white">£0.00</span>
+                </div>
+                <div class="h-8 w-px bg-slate-700"></div>
+                <div>
+                    <span class="text-xs text-slate-400 block font-medium uppercase tracking-wider">VAT (20%)</span>
+                    <span id="summaryVat" class="text-xl font-extrabold text-slate-300">£0.00</span>
+                </div>
+            </div>
+
+            <!-- Grand Total & Generator Trigger Button -->
+            <div class="flex items-center space-x-6 w-full md:w-auto justify-between md:justify-end">
+                <div class="text-right">
+                    <span class="text-xs text-slate-400 block font-medium uppercase tracking-wider">Total Amount (Inc. VAT)</span>
+                    <span id="summaryGrandTotal" class="text-2xl font-black text-emerald-400">£0.00</span>
+                </div>
+
+                <button onclick="generateFormalQuoteModal()" 
+                        class="bg-emerald-600 hover:bg-emerald-500 text-white px-6 py-3.5 rounded-xl font-bold text-base shadow-lg hover:shadow-emerald-900/40 transition duration-150 flex items-center gap-2.5 whitespace-nowrap">
+                    <i class="fa-solid fa-file-pdf text-lg"></i>
+                    <span>Generate Formal Quote</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- FORMAL QUOTE MODAL (QU1006.pdf Format) -->
+    <div id="quoteModal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-2 sm:p-6 overflow-y-auto">
+        <div class="bg-white text-slate-900 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[92vh] overflow-y-auto border border-slate-200 flex flex-col my-auto">
+            
+            <!-- Modal Header Toolbar (Hidden during print) -->
+            <div class="no-print bg-slate-900 text-white px-6 py-4 flex items-center justify-between sticky top-0 z-10 border-b border-slate-700">
+                <div class="flex items-center space-x-2">
+                    <i class="fa-solid fa-file-invoice text-emerald-400 text-lg"></i>
+                    <h3 class="font-bold text-base">Formal PDF Quote Preview</h3>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <button onclick="window.print()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg text-xs font-bold transition flex items-center gap-2 shadow">
+                        <i class="fa-solid fa-print"></i> Print / Save as PDF
+                    </button>
+                    <button onclick="closeQuoteModal()" class="text-slate-400 hover:text-white p-2 rounded-lg transition">
+                        <i class="fa-solid fa-xmark text-xl"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Formal Quote Document Body (Exact QU1006 Layout Structure) -->
+            <div id="printableQuoteBody" class="p-8 sm:p-12 space-y-8 bg-white">
+                
+                <!-- Quote Header Banner -->
+                <div class="flex flex-col sm:flex-row justify-between items-start gap-6 border-b border-slate-200 pb-8">
+                    <!-- Left: Logo & Company Address -->
+                    <div class="space-y-3">
+                        <div class="flex items-center space-x-3">
+                            <!-- High Resolution Castle Brand Logo SVG -->
+                            <svg class="h-12 w-auto" viewBox="0 0 400 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M10 80V35L20 25L30 35V80H10Z" fill="#1E3E62"/>
+                                <path d="M25 80V20L35 10L45 20V80H25Z" fill="#007AFF"/>
+                                <path d="M40 80V35L50 25L60 35V80H40Z" fill="#1E3E62"/>
+                                <rect x="15" y="45" width="8" height="12" fill="white" rx="2"/>
+                                <rect x="31" y="30" width="8" height="12" fill="white" rx="2"/>
+                                <rect x="47" y="45" width="8" height="12" fill="white" rx="2"/>
+                                <text x="75" y="62" font-family="Arial, sans-serif" font-weight="900" font-size="54" fill="#1E3E62" letter-spacing="-2">CPG</text>
+                                <text x="76" y="85" font-family="Arial, sans-serif" font-weight="600" font-size="16" fill="#475569" letter-spacing="3.5">Cyber Protection Group</text>
+                            </svg>
+                        </div>
+                        <div class="text-xs text-slate-500 leading-relaxed font-medium">
+                            <p class="font-bold text-slate-800">Cyber Protection Group Ltd</p>
+                            <p>100 Bishopsgate, Level 19</p>
+                            <p>London, EC2N 4AG, United Kingdom</p>
+                            <p>Email: quotes@cyberprotectiongroup.co.uk | Web: www.cyberprotectiongroup.co.uk</p>
+                        </div>
+                    </div>
+
+                    <!-- Right: Formal Quote Metadata Block -->
+                    <div class="text-left sm:text-right space-y-1 bg-slate-50 sm:bg-transparent p-4 sm:p-0 rounded-xl border sm:border-0 border-slate-200 min-w-[220px]">
+                        <h2 class="text-3xl font-black text-cpg-navy tracking-tight" id="modalQuoteTitle">QUOTE QU1006</h2>
+                        <div class="text-xs text-slate-600 space-y-1 font-medium pt-2">
+                            <p><span class="text-slate-400 font-semibold">Date:</span> <span id="modalQuoteDate" class="font-bold text-slate-900">19 Sep 2026</span></p>
+                            <p><span class="text-slate-400 font-semibold">Expiry Date:</span> <span id="modalQuoteExpiry" class="font-bold text-slate-900">19 Oct 2026</span></p>
+                            <p><span class="text-slate-400 font-semibold">VAT Registration:</span> <span class="font-bold text-slate-900">GB 384 9201 55</span></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Customer Details / Bill To Section -->
+                <div class="bg-slate-50 rounded-xl p-5 border border-slate-200/80">
+                    <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Prepared For / Customer Details</h4>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                        <div>
+                            <p class="font-bold text-slate-900 text-base" id="modalCustName">Acme Cyber Solutions Ltd</p>
+                            <p class="text-slate-600" id="modalCustAddr1">Suite 404, Innovation Tower</p>
+                            <p class="text-slate-600" id="modalCustAddr2">Tech City Quarter</p>
+                            <p class="text-slate-600"><span id="modalCustCity">London</span>, <span id="modalCustPostcode">EC1V 9BD</span></p>
+                        </div>
+                        <div class="text-xs text-slate-600 space-y-1 sm:text-right">
+                            <p><i class="fa-solid fa-envelope text-slate-400 mr-1.5"></i> <span id="modalCustEmail">accounts@acme-cyber.co.uk</span></p>
+                            <p><i class="fa-solid fa-phone text-slate-400 mr-1.5"></i> <span id="modalCustPhone">+44 (0) 20 7946 0912</span></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product Table matching QU1006.pdf structure -->
+                <div>
+                    <table class="w-full text-left text-sm border-collapse">
+                        <thead>
+                            <tr class="border-b-2 border-slate-900 text-xs font-bold text-slate-900 uppercase tracking-wider">
+                                <th class="py-3 pr-3">Description</th>
+                                <th class="py-3 px-3 text-center">Qty</th>
+                                <th class="py-3 px-3 text-right">Unit Price</th>
+                                <th class="py-3 px-3 text-center">VAT Rate</th>
+                                <th class="py-3 pl-3 text-right">Amount GBP</th>
+                            </tr>
+                        </thead>
+                        <tbody id="modalTableItems" class="divide-y divide-slate-200">
+                            <!-- Items injected dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Financial Totals Section -->
+                <div class="flex justify-end pt-4 border-t border-slate-200">
+                    <div class="w-full sm:w-80 space-y-2.5 text-sm">
+                        <div class="flex justify-between text-slate-600 font-medium">
+                            <span>Subtotal</span>
+                            <span id="modalSubtotal" class="font-bold text-slate-900">£0.00</span>
+                        </div>
+                        <div class="flex justify-between text-slate-600 font-medium">
+                            <span>TOTAL VAT 20%</span>
+                            <span id="modalVat" class="font-bold text-slate-900">£0.00</span>
+                        </div>
+                        <div class="flex justify-between text-lg font-black text-slate-900 border-t-2 border-slate-900 pt-3">
+                            <span>TOTAL GBP</span>
+                            <span id="modalGrandTotal" class="text-cpg-navy">£0.00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Terms & Acceptance Footer -->
+                <div class="pt-8 border-t border-slate-200 space-y-4">
+                    <div>
+                        <h5 class="text-xs font-bold text-slate-900 uppercase tracking-wider mb-1">Terms & Conditions</h5>
+                        <p class="text-xs text-slate-600" id="modalTermsText">Monthly in Advance 12 Month rolling contract</p>
+                    </div>
+
+                    <div class="bg-slate-50 p-4 rounded-lg border border-slate-200 text-xs text-slate-500 leading-relaxed">
+                        <p>This quotation is subject to Cyber Protection Group standard terms of service. Prices quoted are valid for 30 days from date of issue. Software licenses and cloud backup services are billed in advance.</p>
+                    </div>
+
+                    <div class="pt-6 grid grid-cols-2 gap-8 text-xs text-slate-500">
+                        <div class="border-t border-slate-300 pt-2">
+                            <p class="font-bold text-slate-700">Authorized Signature (CPG)</p>
+                            <p class="mt-4 text-slate-400">Date: ________________________</p>
+                        </div>
+                        <div class="border-t border-slate-300 pt-2">
+                            <p class="font-bold text-slate-700">Customer Acceptance Signature</p>
+                            <p class="mt-4 text-slate-400">Date: ________________________</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Data Logic & Interactions -->
+    <script>
+        
+        // Full Inventory Data structured directly from inventory.csv
+        const inventoryData = [
+            // Category 210: CYBER App
+            {
+                itemCode: "CA-01",
+                itemName: "Cyber App - Apple",
+                purchasesDescription: "Cyber App - Apple & Android : We handle Endpoint Mobile Phone Protection, Monitor and remove harmful Software. Proactive threat hunting, investigation, and incident response through our managed detection and response services. Mobile Phone Scan to Detect Infection",
+                purchasesUnitPrice: 3.48,
+                purchasesAccount: 312,
+                salesUnitPrice: 10.00,
+                salesAccount: 210,
+                category: "CYBER App"
+            },
+            {
+                itemCode: "CA-01 (A)",
+                itemName: "Cyber App - Android",
+                purchasesDescription: "Cyber App - Apple & Android : We handle Endpoint Mobile Phone Protection, Monitor and remove harmful Software. Proactive threat hunting, investigation, and incident response through our managed detection and response services. Mobile Phone Scan to Detect Infection",
+                purchasesUnitPrice: 3.48,
+                purchasesAccount: 312,
+                salesUnitPrice: 10.00,
+                salesAccount: 210,
+                category: "CYBER App"
+            },
+
+            // Category 205: CYBER Assure
+            {
+                itemCode: "CAS-01",
+                itemName: "Cyber Essentials Certification Only",
+                purchasesDescription: "Cyber Essentials Certification - An essential first-step cybersecurity certification. It provides foundational training and guidance to help businesses protect against common cyber threats and build a strong security posture.",
+                purchasesUnitPrice: 575.00,
+                purchasesAccount: 311,
+                salesUnitPrice: 675.00,
+                salesAccount: 205,
+                category: "CYBER Assure"
+            },
+            {
+                itemCode: "CAS-02 (A)",
+                itemName: "Cyber Essentials Bundles (1 to 9 Licenses)",
+                purchasesDescription: "Cybersmart Core Bundle: Cyber Essentials Bundles - Cyber Essentials Certification powered by the Cybersmart dashboard and Active Protect Agent offers a streamlined, time-efficient path to compliance. Backed by the UK government, this solution includes Cyber Plus coverage with up to £100K cyber insurance, providing SMEs with robust protection and peace of mind—all through a convenient, user-friendly platform.",
+                purchasesUnitPrice: 70.00,
+                purchasesAccount: 311,
+                salesUnitPrice: 95.00,
+                salesAccount: 205,
+                category: "CYBER Assure"
+            },
+            {
+                itemCode: "CAS-02 (B)",
+                itemName: "Cyber Essentials Bundles (10 to 19 Licenses)",
+                purchasesDescription: "Cybersmart Core Bundle: Cyber Essentials Bundles - Cyber Essentials Certification powered by the Cybersmart dashboard and Active Protect Agent offers a streamlined, time-efficient path to compliance. Backed by the UK government, this solution includes Cyber Plus coverage with up to £100K cyber insurance, providing SMEs with robust protection and peace of mind—all through a convenient, user-friendly platform.",
+                purchasesUnitPrice: 94.00,
+                purchasesAccount: 311,
+                salesUnitPrice: 125.00,
+                salesAccount: 205,
+                category: "CYBER Assure"
+            },
+            {
+                itemCode: "CAS-03",
+                itemName: "Cyber Essentials PLUS Certification",
+                purchasesDescription: "Cyber Essentials PLUS Certification - Cyber Essentials Plus Certification is the advanced, second-level UK government-backed certification designed for larger and regulated organizations. It requires obtaining Cyber Essentials certification within three months of the certification date. Our convenient, time-efficient platform streamlines both Cyber Essentials and Cyber Essentials Plus processes, ensuring hassle-free compliance and enhanced security assurance.",
+                purchasesUnitPrice: 12.22,
+                purchasesAccount: 311,
+                salesUnitPrice: 16.11,
+                salesAccount: 205,
+                category: "CYBER Assure"
+            },
+            {
+                itemCode: "CAS-04",
+                itemName: "Cybersmart Complete Bundle",
+                purchasesDescription: "Cyber Essentials and Cyber Essentials Plus certifications, powered by the Active Protect Agent and intuitive dashboard, provide a comprehensive cybersecurity solution for your business. Backed by the UK government, this package includes up to £250K cyber insurance and a GDPR Toolkit, all delivered through a convenient, time-efficient platform that streamlines compliance and protection—making security and regulatory adherence simple and hassle-free.",
+                purchasesUnitPrice: 20.22,
+                purchasesAccount: 311,
+                salesUnitPrice: 27.00,
+                salesAccount: 205,
+                category: "CYBER Assure"
+            },
+            {
+                itemCode: "CAS-05",
+                itemName: "Phishing Simulations",
+                purchasesDescription: "Phishing Simulations - Phishing simulations provide valuable insights into your organization's vulnerabilities by identifying employees or departments most susceptible to phishing attacks. By continuously simulating cyber threats, these exercises highlight weak spots and enable targeted training, boosting employee awareness and vigilance. This proactive approach reduces the risk of successful attacks, helping to prevent data breaches and financial losses.",
+                purchasesUnitPrice: 5.16,
+                purchasesAccount: 311,
+                salesUnitPrice: 7.22,
+                salesAccount: 205,
+                category: "CYBER Assure"
+            },
+            {
+                itemCode: "CAS-06",
+                itemName: "Cyber Insurance",
+                purchasesDescription: "Cyber Insurance - Cyber Insurance offering income replacement and technology coverage, protecting your business against damage, loss, theft, or unauthorized disclosure of credit card data. This policy helps safeguard you from potential PCI compliance breaches and the associated financial risks.",
+                purchasesUnitPrice: 20.22,
+                purchasesAccount: 311,
+                salesUnitPrice: 27.00,
+                salesAccount: 205,
+                category: "CYBER Assure"
+            },
+            {
+                itemCode: "CAS-07",
+                itemName: "Cyber Security / Awareness Training",
+                purchasesDescription: "Cyber Security / Awareness Training - A comprehensive program that trains employees to identify and respond to cyber threats while safeguarding your business systems and data. By promoting strong cyber hygiene and good security habits, it empowers your workforce to act as the first line of defense, reducing the risk of breaches and strengthening your organization's overall cybersecurity.",
+                purchasesUnitPrice: 2.45,
+                purchasesAccount: 311,
+                salesUnitPrice: 3.30,
+                salesAccount: 205,
+                category: "CYBER Assure"
+            },
+            {
+                itemCode: "CAS-08",
+                itemName: "Pentest- Network Penetration Testing",
+                purchasesDescription: "Pentest- Network Penetration Testing - Monthly vulnerability scanning combined with 2 days of penetration testing annually, which can be used anytime within the 12-month period. Additional pen testing days are available at a discounted daily rate. Our automated network penetration testing platform for MSPs supports up to 1,000 internal IPs and 10 external IPs, allowing flexible assignment across multiple customers for comprehensive web application and network security assessments.",
+                purchasesUnitPrice: 210.00,
+                purchasesAccount: 311,
+                salesUnitPrice: 273.00,
+                salesAccount: 205,
+                category: "CYBER Assure"
+            },
+            {
+                itemCode: "CAS-09",
+                itemName: "Manual Pen Testing 3 Days",
+                purchasesDescription: "Manual Pen Testing Days - Security test that simulates a cyber attack to evaluate your business cybersecurity. Penetration testing to help identify vulnerabilities in your system and improve your Business security posture.",
+                purchasesUnitPrice: 445.95,
+                purchasesAccount: 311,
+                salesUnitPrice: 1250.00,
+                salesAccount: 205,
+                category: "CYBER Assure"
+            },
+            {
+                itemCode: "CAS-09 (1)",
+                itemName: "Pen Test - Rootshell - Prism - Pack 1",
+                purchasesDescription: "Pen Test - Rootshell - Prism - Pack 1",
+                purchasesUnitPrice: 90.00,
+                purchasesAccount: 311,
+                salesUnitPrice: 117.00,
+                salesAccount: 205,
+                category: "CYBER Assure"
+            },
+
+            // Category 220: CYBER Backup
+            {
+                itemCode: "CB-01",
+                itemName: "Office 365 Backup",
+                purchasesDescription: "Office 365 Backup - Comprehensive backup solution for Mail, OneDrive, SharePoint, OneNote, and Teams, providing full control over your data storage. Protects against data loss, controls data exfiltration, and minimizes damage from cyberattacks to ensure business continuity.",
+                purchasesUnitPrice: 1.65,
+                purchasesAccount: 313,
+                salesUnitPrice: 2.31,
+                salesAccount: 220,
+                category: "CYBER Backup"
+            },
+            {
+                itemCode: "CB-02",
+                itemName: "Entra ID Backup",
+                purchasesDescription: "Entra ID Backup - Automated backup of Entra ID (formerly Azure AD) to safeguard your identity and access management infrastructure. Protect critical directory data, including users, groups, roles, and configurations, ensuring rapid recovery in the event of accidental deletion, misconfigurations, or malicious attacks. Maintain business continuity and compliance with secure, tamper-proof backups.",
+                purchasesUnitPrice: 1.00,
+                purchasesAccount: 313,
+                salesUnitPrice: 1.40,
+                salesAccount: 220,
+                category: "CYBER Backup"
+            },
+            {
+                itemCode: "CB-03",
+                itemName: "Google Workspace",
+                purchasesDescription: "Google Workspace - Automated, secure backup of Gmail, Google Drive, Classroom, Jamboard, Forms, Drawings, Slides, Sheets, and App Scripts. Supports full data recovery from any point in time, with flexible restore options to empty, existing, or new user accounts. Ensure uninterrupted access, safeguard against data loss, and maintain compliance with robust, granular restore capabilities.",
+                purchasesUnitPrice: 1.65,
+                purchasesAccount: 313,
+                salesUnitPrice: 2.31,
+                salesAccount: 220,
+                category: "CYBER Backup"
+            },
+            {
+                itemCode: "CB-04",
+                itemName: "Salesforce",
+                purchasesDescription: "Salesforce - Secure, automated backup of your entire Salesforce environment, including Customer, Supplier, Product, Service, and Bank data, along with all associated transactions. Enables full or granular restoration to preserve business continuity, support compliance, and protect against data loss caused by human error, system failures, or malicious activity.",
+                purchasesUnitPrice: 2.20,
+                purchasesAccount: 313,
+                salesUnitPrice: 3.08,
+                salesAccount: 220,
+                category: "CYBER Backup"
+            },
+            {
+                itemCode: "CB-05 - Xero",
+                itemName: "Xero",
+                purchasesDescription: "Xero - Comprehensive backup solution for Xero, covering all critical data including Customers, Suppliers, Products, Services, and Bank records along with full transaction history. Enables fast, accurate restoration of data to ensure business continuity, support regulatory compliance, and protect against accidental deletion, corruption, or cyber incidents.",
+                purchasesUnitPrice: 5.50,
+                purchasesAccount: 313,
+                salesUnitPrice: 7.70,
+                salesAccount: 220,
+                category: "CYBER Backup"
+            },
+            {
+                itemCode: "CB-06- QuickBooks",
+                itemName: "QuickBooks",
+                purchasesDescription: "QuickBooks - Reliable, automated backup of your entire QuickBooks environment, including Customers, Suppliers, Products, Services, and Bank data with full transaction history. Enables seamless restoration of critical financial information to maintain business continuity, ensure compliance, and safeguard against data loss from errors, system failures, or cyber threats.",
+                purchasesUnitPrice: 5.50,
+                purchasesAccount: 313,
+                salesUnitPrice: 7.70,
+                salesAccount: 220,
+                category: "CYBER Backup"
+            },
+            {
+                itemCode: "CB-07",
+                itemName: "Laptop, Server, Azure VM, VMware VM, Hyper-V VM",
+                purchasesDescription: "Laptop, Server, Azure VM, VMware VM, Hyper-V VM - Licensing for comprehensive backup of physical machines, IaaS, and PaaS environments. Benefit from up to 60x smaller incremental backups for faster data transfers, enabling more frequent restore points and optimized Recovery Time Objectives (RTO) and Recovery Point Objectives (RPO). Gain full control over storage, prevent unauthorized data exfiltration, and significantly reduce the impact of cyberattacks with secure, efficient backup and recovery.",
+                purchasesUnitPrice: 5.50,
+                purchasesAccount: 313,
+                salesUnitPrice: 7.70,
+                salesAccount: 220,
+                category: "CYBER Backup"
+            },
+            {
+                itemCode: "CB-08",
+                itemName: "Azure Blob Storage Group",
+                purchasesDescription: "Azure Blob Storage Group - Scalable backup storage for physical machines, IaaS, and PaaS environments, billed per GB. Offers complete control over your storage infrastructure with robust data protection that helps prevent exfiltration and mitigates the impact of cyberattacks. Includes unlimited data retention, ensuring long-term availability and compliance without compromise.",
+                purchasesUnitPrice: 0.07,
+                purchasesAccount: 313,
+                salesUnitPrice: 0.10,
+                salesAccount: 220,
+                category: "CYBER Backup"
+            },
+            {
+                itemCode: "CB-09",
+                itemName: "Dropbox",
+                purchasesDescription: "Dropbox - Robust backup solution with the ability to restore data from any point in time. Supports flexible recovery to empty, existing, or new accounts, ensuring seamless continuity and minimal disruption. Includes unlimited data retention, providing long-term protection, compliance support, and peace of mind.",
+                purchasesUnitPrice: 1.95,
+                purchasesAccount: 313,
+                salesUnitPrice: 2.73,
+                salesAccount: 220,
+                category: "CYBER Backup"
+            },
+            {
+                itemCode: "CB-10",
+                itemName: "iCloud",
+                purchasesDescription: "iCloud - Secure backup solution with unlimited data retention and the ability to restore from any point in time. Easily recover data to empty, existing, or new accounts, ensuring maximum flexibility, business continuity, and long-term protection against data loss.",
+                purchasesUnitPrice: 1.95,
+                purchasesAccount: 313,
+                salesUnitPrice: 2.73,
+                salesAccount: 220,
+                category: "CYBER Backup"
+            },
+            {
+                itemCode: "CB-13",
+                itemName: "Drive Health Monitoring",
+                purchasesDescription: "Drive Health Monitoring - Utilizes advanced machine learning alongside S.M.A.R.T. reports, drive size, vendor data, and other key indicators to accurately predict HDD and SSD failures. Provides continuous, proactive monitoring for servers, workstations, and NAS drives—enabling you to identify potential disk issues before they occur and prevent unexpected downtime.",
+                purchasesUnitPrice: 1.50,
+                purchasesAccount: 313,
+                salesUnitPrice: 2.10,
+                salesAccount: 220,
+                category: "CYBER Backup"
+            },
+
+            // Category 230: CYBER Connect
+            {
+                itemCode: "CC-01",
+                itemName: "Network Security",
+                purchasesDescription: "Network Security - Implement strict identity verification and continuous monitoring to ensure secure access to all applications and data, regardless of user location. Our Zero Trust Access framework protects against unauthorized access and lateral threats by enforcing least privilege principles .Safeguard your cloud-based applications with advanced security controls. Our SaaS Protection solutions provide data loss prevention, access management, and threat detection for platforms like Microsoft 365, Google Workspace, Salesforce, and more — ensuring your sensitive business data remains protected across all services.",
+                purchasesUnitPrice: 5.00,
+                purchasesAccount: 314,
+                salesUnitPrice: 7.00,
+                salesAccount: 230,
+                category: "CYBER Connect"
+            },
+            {
+                itemCode: "CC-05",
+                itemName: "Broadband Routers & Firewalls",
+                purchasesDescription: "Broadband Routers & Firewalls - Enterprise-grade network hardware with co-managed support and real-time reporting on intrusion attempts. Behavioral AI monitors all processes for malicious activity, detecting thousands of malware variants. Our solution offers advanced threat visibility, root cause analysis, and rapid remediation with the ability to reverse malicious actions instantly.",
+                purchasesUnitPrice: 5.00,
+                purchasesAccount: 314,
+                salesUnitPrice: 7.00,
+                salesAccount: 230,
+                category: "CYBER Connect"
+            },
+            {
+                itemCode: "CC-06",
+                itemName: "Leased Line Routers & Firewalls",
+                purchasesDescription: "Leased Line Routers & Firewalls - Enterprise-grade network hardware with co-managed support and real-time reporting on intrusion attempts. Behavioral AI monitors all processes for malicious activity, detecting thousands of malware variants. Our solution offers advanced threat visibility, root cause analysis, and rapid remediation with the ability to reverse malicious actions instantly.",
+                purchasesUnitPrice: 5.00,
+                purchasesAccount: 314,
+                salesUnitPrice: 7.00,
+                salesAccount: 230,
+                category: "CYBER Connect"
+            },
+            {
+                itemCode: "CC-07",
+                itemName: "Wireless Access Points",
+                purchasesDescription: "Wireless Access Points - Enterprise-grade network hardware with co-managed support and real-time reporting on intrusion attempts. Behavioral AI monitors all processes for malicious activity, detecting thousands of malware variants. Our solution offers advanced threat visibility, root cause analysis, and rapid remediation with the ability to reverse malicious actions instantly.",
+                purchasesUnitPrice: 5.00,
+                purchasesAccount: 314,
+                salesUnitPrice: 7.00,
+                salesAccount: 230,
+                category: "CYBER Connect"
+            },
+            {
+                itemCode: "CC-08",
+                itemName: "Network Switch",
+                purchasesDescription: "Network Switch - Enterprise-grade network hardware with co-managed support and real-time reporting on intrusion attempts. Behavioral AI monitors all processes for malicious activity, detecting thousands of malware variants. Our solution offers advanced threat visibility, root cause analysis, and rapid remediation with the ability to reverse malicious actions instantly.",
+                purchasesUnitPrice: 5.00,
+                purchasesAccount: 314,
+                salesUnitPrice: 7.00,
+                salesAccount: 230,
+                category: "CYBER Connect"
+            },
+            {
+                itemCode: "CC-09",
+                itemName: "Network Switch Scan to Detect infection",
+                purchasesDescription: "Network Switch Scan to Detect infection - Enterprise-grade network hardware with co-managed support and real-time reporting on intrusion attempts. Behavioral AI monitors all processes for malicious activity, detecting thousands of malware variants. Our solution offers advanced threat visibility, root cause analysis, and rapid remediation with the ability to reverse malicious actions instantly.",
+                purchasesUnitPrice: 5.00,
+                purchasesAccount: 314,
+                salesUnitPrice: 7.00,
+                salesAccount: 230,
+                category: "CYBER Connect"
+            },
+
+            // Category 240: CYBER Defence
+            {
+                itemCode: "CD-01",
+                itemName: "Microsoft Computers",
+                purchasesDescription: "Microsoft Computers - Our advanced security suite includes Next-Gen Anti-Virus, EDR, and XDR to protect your systems against modern cyber threats. It provides real-time threat detection, automated response, and unified protection across all endpoints and environments.We enforce Zero Trust by locking down all devices, blocking all inbound and outbound traffic, and monitoring every application install.",
+                purchasesUnitPrice: 6.42,
+                purchasesAccount: 315,
+                salesUnitPrice: 8.33,
+                salesAccount: 240,
+                category: "CYBER Defence"
+            },
+            {
+                itemCode: "CD-02",
+                itemName: "Microsoft Servers",
+                purchasesDescription: "Microsoft Servers - Our advanced security suite includes Next-Gen Anti-Virus, EDR, and XDR to protect your systems against modern cyber threats. It provides real-time threat detection, automated response, and unified protection across all endpoints and environments.",
+                purchasesUnitPrice: 6.42,
+                purchasesAccount: 315,
+                salesUnitPrice: 18.00,
+                salesAccount: 240,
+                category: "CYBER Defence"
+            },
+            {
+                itemCode: "CD-04",
+                itemName: "Microsoft Computers, Servers and Apple Computers",
+                purchasesDescription: "Microsoft Computers, Servers and Apple Computers - We enforce Zero Trust by locking down all devices, blocking all inbound and outbound traffic, and monitoring every application install. With EDR and XDR, our systems detect and respond to threats in real time.",
+                purchasesUnitPrice: 6.42,
+                purchasesAccount: 315,
+                salesUnitPrice: 8.33,
+                salesAccount: 240,
+                category: "CYBER Defence"
+            },
+            {
+                itemCode: "CD-05",
+                itemName: "Microsoft On-Line Office 365 Products",
+                purchasesDescription: "Microsoft On-Line Office 365 Products - A proactive security feature that monitors your Office 365 environment for suspicious activity. It detects potential threats such as malware, malicious files, and abnormal user behavior—providing real-time alerts and protecting all your cloud-based Microsoft Office applications from cyberattacks.",
+                purchasesUnitPrice: 6.42,
+                purchasesAccount: 315,
+                salesUnitPrice: 8.33,
+                salesAccount: 240,
+                category: "CYBER Defence"
+            },
+            {
+                itemCode: "CD-06",
+                itemName: "Email Protection",
+                purchasesDescription: "Email Protection: Technology that help prevent, detect, and respond to cyber-attacks that are sent via email. Spam, Malware, Threats, Phishing & Impersonation Protection, Account Takeover, Incident Response",
+                purchasesUnitPrice: 1.39,
+                purchasesAccount: 315,
+                salesUnitPrice: 8.33,
+                salesAccount: 240,
+                category: "CYBER Defence"
+            },
+            {
+                itemCode: "CD-08",
+                itemName: "Ransomware Encryption Protection",
+                purchasesDescription: "Ransomware Encryption Protection - Ransomware protection includes proactive security measures to prevent, detect, respond to, and recover from attacks. This involves tools like email scanning and filtering to block malicious links and attachments, reducing the risk of infection and minimizing impact if an attack occurs.",
+                purchasesUnitPrice: 0.75,
+                purchasesAccount: 315,
+                salesUnitPrice: 8.33,
+                salesAccount: 240,
+                category: "CYBER Defence"
+            },
+            {
+                itemCode: "CD-09",
+                itemName: "DNS Security",
+                purchasesDescription: "DNS Security: Protects Domain Name System (DNS) infrastructure from cyber attacks to ensure it functions reliably and quickly. Defending DNS infrastructure from Cyber Attacks. DNS turns domain names into IP addresses, which allow browsers to get to websites and other internet resources. Every device on the internet has an IP address, which other devices can use to locate the device. DNS Security benefits include protecting against malware and phishing attacks by blocking dangerous websites, neutralizing botnet threats, preventing typo-squatting, improving connection speeds, and implementing additional measures to enhance overall cybersecurity.",
+                purchasesUnitPrice: 0.95,
+                purchasesAccount: 315,
+                salesUnitPrice: 58.00,
+                salesAccount: 240,
+                category: "CYBER Defence"
+            },
+            {
+                itemCode: "CD-10",
+                itemName: "Password Manager / Shadow IT",
+                purchasesDescription: "Password manager can help protect your online accounts and data by securely storing passwords and generating strong ones for you. Password managers can help you create and use strong, unique passwords for all your accounts. Strong passwords are at least 12 characters long and include uppercase and lowercase letters, numbers, and special characters.",
+                purchasesUnitPrice: 4.65,
+                purchasesAccount: 315,
+                salesUnitPrice: 9.33,
+                salesAccount: 240,
+                category: "CYBER Defence"
+            },
+            {
+                itemCode: "CD-11",
+                itemName: "M365 Security",
+                purchasesDescription: "M365 Security / Remediation Platform: Automatically remediate any policies that fall out of line, it will also proactively monitor clients' estates and alert you to any security breaches like password attempts and foreign Sign-In.",
+                purchasesUnitPrice: 1.00,
+                purchasesAccount: 315,
+                salesUnitPrice: 2.50,
+                salesAccount: 240,
+                category: "CYBER Defence"
+            },
+            {
+                itemCode: "CD-12",
+                itemName: "Email Digital Certificate Security",
+                purchasesDescription: "Email Digital Certificate Security - Individual Mailbox Security Certificate, renewable every 12 months, verifies the authenticity of your email address and ensures your documents and emails are genuine. By enabling digital signing and encryption, it provides the highest level of confidentiality—ensuring only intended recipients can read your messages and verify they haven't been altered during transmission.",
+                purchasesUnitPrice: 6.42,
+                purchasesAccount: 315,
+                salesUnitPrice: 8.33,
+                salesAccount: 240,
+                category: "CYBER Defence"
+            },
+
+            // Category 250: CYBER Scan
+            {
+                itemCode: "CS-01",
+                itemName: "Dark Web Monitoring",
+                purchasesDescription: "Dark Web Monitoring - Dark Web Monitoring proactively scans the dark web for compromised credentials and sensitive information related to your business. It provides immediate alerts if usernames, passwords, or personal data are found in breaches, enabling you to take swift action to update security details and prevent unauthorized access. Stay one step ahead of cyber threats by identifying and addressing leaked information before it can be exploited.",
+                purchasesUnitPrice: 1.25,
+                purchasesAccount: 316,
+                salesUnitPrice: 8.33,
+                salesAccount: 250,
+                category: "CYBER Scan"
+            },
+            {
+                itemCode: "CS-02",
+                itemName: "Email Vulnerability Scanner",
+                purchasesDescription: "Email Vulnerability Scanner - Our Email Threat Scanner identifies security vulnerabilities within your email system and provides detailed reports on breaches. It highlights necessary fixes to ensure your domain operates securely and efficiently online, helping organizations detect and address threats before they can be exploited by attackers.",
+                purchasesUnitPrice: 6.42,
+                purchasesAccount: 316,
+                salesUnitPrice: 8.33,
+                salesAccount: 250,
+                category: "CYBER Scan"
+            },
+            {
+                itemCode: "CS-03",
+                itemName: "DNS Scanner",
+                purchasesDescription: "DNS Scanner - Our Domain Security Monitor identifies vulnerabilities and cyber risks in your domain name, ensuring it operates safely and efficiently online. By monitoring DNS traffic, it detects misconfigurations, prevents data exfiltration, improves network performance, and uncovers malicious activity—helping you implement essential fixes to protect your domain.",
+                purchasesUnitPrice: 6.42,
+                purchasesAccount: 316,
+                salesUnitPrice: 8.33,
+                salesAccount: 250,
+                category: "CYBER Scan"
+            },
+            {
+                itemCode: "CS-04 (A)",
+                itemName: "DNS Scanner (DMARC) 1 to 30 Users",
+                purchasesDescription: "DNS Scanner - Per-Domain DMARC Protection powered by Sendmarc helps clients achieve a p=reject policy to stop email impersonation attacks, safeguarding your brand reputation, legal compliance, and customer trust. Unlike many solutions that focus on blocking inbound threats, Sendmarc prevents attackers from spoofing your domain by accurately monitoring and reporting email activity. Our tool also monitors DNS traffic to detect vulnerabilities, prevent data exfiltration, improve network performance, identify misconfigurations, and detect malicious activity—providing comprehensive protection for your domain.",
+                purchasesUnitPrice: 43.50,
+                purchasesAccount: 316,
+                salesUnitPrice: 58.00,
+                salesAccount: 250,
+                category: "CYBER Scan"
+            },
+            {
+                itemCode: "CS-05",
+                itemName: "DNS Scanner",
+                purchasesDescription: "DNS Scanner - Premium Per User Per Month (PUPM) service helps clients achieve a project DMARC policy within 90 days, managing multiple domains in 90-day cycles. Our tool continuously monitors DNS traffic to identify and fix vulnerabilities, prevent data exfiltration, improve network performance, detect misconfigurations, and uncover malicious activity—delivering comprehensive domain protection per user.",
+                purchasesUnitPrice: 2.50,
+                purchasesAccount: 316,
+                salesUnitPrice: 3.50,
+                salesAccount: 250,
+                category: "CYBER Scan"
+            },
+            {
+                itemCode: "CS-06",
+                itemName: "Web Application Scan",
+                purchasesDescription: "Web Application Scan - Prevent sophisticated bot and account takeover attacks with our comprehensive web application security assessment. Using automated and manual tools, we identify vulnerabilities in your cloud applications and recommend essential web-based security measures to fix issues before attackers can exploit them.",
+                purchasesUnitPrice: 92.29,
+                purchasesAccount: 316,
+                salesUnitPrice: 129.21,
+                salesAccount: 250,
+                category: "CYBER Scan"
+            },
+            {
+                itemCode: "CS-07",
+                itemName: "Data Inspector",
+                purchasesDescription: "Data Inspector - Automatically scan your OneDrive for Business and SharePoint for sensitive data and malware, helping you identify and remediate risks before they impact your organization. Our solution detects both existing and new sensitive information to reduce regulatory fines, while comprehensive scan and audit logs simplify compliance management. Protect your data and stay secure with proactive threat detection and flexible remediation options.",
+                purchasesUnitPrice: 5.10,
+                purchasesAccount: 316,
+                salesUnitPrice: 7.14,
+                salesAccount: 250,
+                category: "CYBER Scan"
+            },
+            {
+                itemCode: "CS-08",
+                itemName: "External Scanning (Root Shell Prism Pack 1)",
+                purchasesDescription: "External Scanning (Root Shell Prism Pack 1) - Our Vulnerability Scanning service assesses your network from a threat actor's perspective by scanning external IP addresses and domains for exploitable weaknesses. Using advanced automated tools, we identify security flaws in web applications—such as cross-site scripting (XSS), SQL injection, and cross-site request forgery (CSRF)—to help you proactively protect your internet-facing infrastructure.",
+                purchasesUnitPrice: 90.00,
+                purchasesAccount: 316,
+                salesUnitPrice: 117.00,
+                salesAccount: 250,
+                category: "CYBER Scan"
+            },
+            {
+                itemCode: "CS-09 (A)",
+                itemName: "Internal Scanning - (0 to 50 Assets)",
+                purchasesDescription: "Internal Scanning - Vulnerability Scanning for all your digital assets and virtual appliances. We thoroughly assess your internal networks, systems, and infrastructure to identify security weaknesses and strengthen your defenses. Using automated tools, our process evaluates vulnerabilities across your IT environment to help you proactively enhance overall security.",
+                purchasesUnitPrice: 104.00,
+                purchasesAccount: 316,
+                salesUnitPrice: 135.20,
+                salesAccount: 250,
+                category: "CYBER Scan"
+            },
+
+            // Category Extras (SalesAccount 201)
+            {
+                itemCode: "Consultancy - 01",
+                itemName: "Consultancy - On Boarding",
+                purchasesDescription: "Consultancy - On Boarding & Migration Services. Expert assistance in onboarding security suites, configuring tenant policies, and seamless deployment across user endpoints.",
+                purchasesUnitPrice: 50.00,
+                purchasesAccount: 325,
+                salesUnitPrice: 90.00,
+                salesAccount: 201,
+                category: "Extras"
+            }
+        ];
+
+        // Unique Categories Array
+        const categoriesList = ["ALL", "CYBER App", "CYBER Assure", "CYBER Backup", "CYBER Connect", "CYBER Defence", "CYBER Scan", "Extras"];
+
+        // Application State
+        let activeCategory = "ALL";
+        let searchQuery = "";
+        let productState = {}; // Stores { qty: number, salesPrice: number } indexed by itemCode
+
+        window.onload = function() {
+            initializeProductState();
+            setupCategoryTabs();
+            setDefaultDates();
+            renderProducts();
+            updateCalculations();
+        };
+
+        // Initialize state map for each product
+        function initializeProductState() {
+            inventoryData.forEach(item => {
+                productState[item.itemCode] = {
+                    qty: 0,
+                    salesPrice: item.salesUnitPrice
+                };
+            });
+        }
+
+        // Set default quote dates
+        function setDefaultDates() {
+            const today = new Date();
+            const expiry = new Date();
+            expiry.setDate(today.getDate() + 30);
+
+            document.getElementById('quoteDate').value = today.toISOString().split('T')[0];
+            document.getElementById('totalProductsCount').innerText = inventoryData.length;
+        }
+
+        function setupCategoryTabs() {
+            const navContainer = document.getElementById('categoryNavTabs');
+            navContainer.innerHTML = '';
+
+            categoriesList.forEach(cat => {
+                const btn = document.createElement('button');
+                btn.className = getCategoryTabStyle(cat === activeCategory);
+                btn.innerHTML = getCategoryIcon(cat) + ` <span>${cat}</span>`;
+                btn.onclick = () => selectCategory(cat);
+                navContainer.appendChild(btn);
+            });
+        }
+
+        function getCategoryTabStyle(isActive) {
+            if (isActive) {
+                return "bg-cpg-accent text-white px-4 py-2 rounded-lg font-bold shadow-md transition duration-150 flex items-center gap-2 border border-blue-400";
+            }
+            return "text-slate-300 hover:text-white hover:bg-slate-800/80 px-4 py-2 rounded-lg font-medium transition duration-150 flex items-center gap-2";
+        }
+
+        function getCategoryIcon(cat) {
+            switch(cat) {
+                case "ALL": return '<i class="fa-solid fa-border-all text-xs"></i>';
+                case "CYBER App": return '<i class="fa-solid fa-mobile-screen-button text-xs"></i>';
+                case "CYBER Assure": return '<i class="fa-solid fa-shield-halved text-xs"></i>';
+                case "CYBER Backup": return '<i class="fa-solid fa-database text-xs"></i>';
+                case "CYBER Connect": return '<i class="fa-solid fa-network-wired text-xs"></i>';
+                case "CYBER Defence": return '<i class="fa-solid fa-user-shield text-xs"></i>';
+                case "CYBER Scan": return '<i class="fa-solid fa-radar text-xs"></i>';
+                case "Extras": return '<i class="fa-solid fa-sliders text-xs"></i>';
+                default: return '<i class="fa-solid fa-layer-group text-xs"></i>';
+            }
+        }
+
+        function selectCategory(cat) {
+            activeCategory = cat;
+            document.getElementById('activeCategoryName').innerText = cat;
+            setupCategoryTabs();
+            renderProducts();
+        }
+
+        function handleSearch() {
+            searchQuery = document.getElementById('searchInput').value.toLowerCase().trim();
+            renderProducts();
+        }
+
+        function renderProducts() {
+            const displayContainer = document.getElementById('productsDisplayContainer');
+            displayContainer.innerHTML = '';
+
+            // Filter categories based on active selection
+            const categoriesToDisplay = activeCategory === "ALL" 
+                ? categoriesList.filter(c => c !== "ALL")
+                : [activeCategory];
+
+            let renderedCount = 0;
+
+            categoriesToDisplay.forEach(catName => {
+                // Filter items for category and search term
+                const itemsInCat = inventoryData.filter(item => {
+                    const matchesCategory = item.category === catName;
+                    const matchesSearch = !searchQuery || 
+                        item.itemName.toLowerCase().includes(searchQuery) ||
+                        item.itemCode.toLowerCase().includes(searchQuery) ||
+                        item.purchasesDescription.toLowerCase().includes(searchQuery);
+                    return matchesCategory && matchesSearch;
+                });
+
+                if (itemsInCat.length === 0) return;
+
+                renderedCount += itemsInCat.length;
+
+                // Section Block per Category
+                const section = document.createElement('div');
+                section.className = "space-y-4";
+
+                // Category Title Header
+                section.innerHTML = `
+                    <div class="flex items-center justify-between border-b border-slate-300 pb-2">
+                        <h2 class="text-xl font-bold text-slate-800 flex items-center gap-2">
+                            <span class="w-3 h-6 bg-cpg-accent rounded-sm inline-block"></span>
+                            ${catName}
+                            <span class="text-xs bg-slate-200 text-slate-700 px-2.5 py-0.5 rounded-full font-semibold">${itemsInCat.length} products</span>
+                        </h2>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="grid-${catName.replace(/\s+/g, '-')}">
+                    </div>
+                `;
+
+                displayContainer.appendChild(section);
+
+                const gridContainer = section.querySelector(`[id^='grid-']`);
+
+                // Render each product as a tile card
+                itemsInCat.forEach(item => {
+                    const state = productState[item.itemCode];
+                    const cardTotal = (state.qty * state.salesPrice).toFixed(2);
+                    const isSelected = state.qty > 0;
+
+                    const card = document.createElement('div');
+                    card.className = `bg-white rounded-xl shadow-sm border transition duration-200 flex flex-col justify-between overflow-hidden relative ${
+                        isSelected ? 'border-cpg-accent ring-2 ring-blue-500/20 shadow-md' : 'border-slate-200 hover:border-slate-300'
+                    }`;
+
+                    card.innerHTML = `
+                        <!-- Top Header Badge & Code -->
+                        <div class="p-5 pb-3 space-y-2">
+                            <div class="flex items-start justify-between gap-2">
+                                <span class="bg-slate-900 text-white font-mono text-xs font-bold px-2.5 py-1 rounded-md shadow-sm border border-slate-700 tracking-wide">
+                                    ${item.itemCode}
+                                </span>
+                                <span class="text-[11px] font-semibold text-slate-400 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
+                                    Account ${item.salesAccount}
+                                </span>
+                            </div>
+
+                            <!-- Product Title -->
+                            <h3 class="font-bold text-slate-900 text-base leading-snug line-clamp-2 min-h-[2.75rem]" title="${item.itemName}">
+                                ${item.itemName}
+                            </h3>
+
+                            <!-- Product Description -->
+                            <p class="text-xs text-slate-600 line-clamp-4 leading-relaxed bg-slate-50/80 p-2.5 rounded-lg border border-slate-100 text-justify" title="${item.purchasesDescription}">
+                                ${item.purchasesDescription}
+                            </p>
+                        </div>
+
+                        <!-- Price & Quantity Control Section -->
+                        <div class="p-5 pt-3 bg-slate-50/50 border-t border-slate-100 space-y-4 mt-2">
+                            
+                            <!-- Pricing Row: Sales (Editable) & Purchase (Readonly) -->
+                            <div class="grid grid-cols-2 gap-3">
+                                <!-- Editable Sales Unit Price -->
+                                <div>
+                                    <label class="block text-[10px] font-extrabold text-slate-500 uppercase tracking-wider mb-1">
+                                        Sales Unit Price (£)
+                                    </label>
+                                    <div class="relative">
+                                        <span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-bold">£</span>
+                                        <input type="number" step="0.01" min="0" value="${state.salesPrice}" 
+                                               onchange="updateItemSalesPrice('${item.itemCode}', this.value)"
+                                               class="w-full pl-6 pr-2 py-1.5 bg-white border border-slate-300 rounded-lg text-sm font-bold text-slate-800 focus:ring-2 focus:ring-cpg-accent focus:border-cpg-accent outline-none">
+                                    </div>
+                                </div>
+
+                                <!-- Readonly Purchase Unit Price -->
+                                <div>
+                                    <label class="block text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">
+                                        Purchase Price
+                                    </label>
+                                    <div class="relative">
+                                        <span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-medium">£</span>
+                                        <input type="text" readonly value="${item.purchasesUnitPrice.toFixed(2)}" 
+                                               class="w-full pl-6 pr-2 py-1.5 bg-slate-100 border border-slate-200 text-slate-500 rounded-lg text-sm font-semibold cursor-not-allowed">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Quantity Counter Controls -->
+                            <div class="flex items-center justify-between pt-1">
+                                <div>
+                                    <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Quantity</span>
+                                    <div class="flex items-center border border-slate-300 bg-white rounded-lg overflow-hidden shadow-sm mt-0.5">
+                                        <button onclick="adjustQty('${item.itemCode}', -1)" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold transition text-xs border-r border-slate-200">
+                                            <i class="fa-solid fa-minus"></i>
+                                        </button>
+                                        <input type="number" min="0" value="${state.qty}" 
+                                               onchange="setItemQty('${item.itemCode}', this.value)"
+                                               class="w-12 text-center py-1.5 text-sm font-bold text-slate-900 focus:outline-none">
+                                        <button onclick="adjustQty('${item.itemCode}', 1)" class="px-3 py-1.5 bg-cpg-accent hover:bg-blue-600 text-white font-bold transition text-xs border-l border-blue-600">
+                                            <i class="fa-solid fa-plus"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Calculated Tile Line Subtotal -->
+                                <div class="text-right">
+                                    <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Tile Total</span>
+                                    <span class="text-base font-extrabold text-slate-900">£${cardTotal}</span>
+                                </div>
+                            </div>
+
+                        </div>
+                    `;
+
+                    gridContainer.appendChild(card);
+                });
+            });
+
+            if (renderedCount === 0) {
+                displayContainer.innerHTML = `
+                    <div class="text-center py-16 bg-white rounded-2xl border border-slate-200 shadow-sm space-y-3">
+                        <i class="fa-solid fa-magnifying-glass text-4xl text-slate-300"></i>
+                        <h3 class="text-lg font-bold text-slate-700">No matching products found</h3>
+                        <p class="text-xs text-slate-500">Try adjusting your search filter or switching category tabs.</p>
+                        <button onclick="document.getElementById('searchInput').value=''; handleSearch();" class="mt-2 text-xs font-bold text-cpg-accent hover:underline">
+                            Clear Search
+                        </button>
+                    </div>
+                `;
+            }
+        }
+
+        function adjustQty(code, delta) {
+            const current = productState[code].qty;
+            const updated = Math.max(0, current + delta);
+            productState[code].qty = updated;
+            renderProducts();
+            updateCalculations();
+        }
+
+        function setItemQty(code, value) {
+            const parsed = parseInt(value) || 0;
+            productState[code].qty = Math.max(0, parsed);
+            renderProducts();
+            updateCalculations();
+        }
+
+        function updateItemSalesPrice(code, value) {
+            const parsed = parseFloat(value) || 0;
+            productState[code].salesPrice = Math.max(0, parsed);
+            renderProducts();
+            updateCalculations();
+        }
+
+        function resetAllQuantities() {
+            Object.keys(productState).forEach(code => {
+                productState[code].qty = 0;
+            });
+            renderProducts();
+            updateCalculations();
+        }
+
+        function scrollToCustomerDetails() {
+            document.getElementById('customerDetailsSection').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Calculate Totals & Update Sticky Footer
+        function updateCalculations() {
+            let selectedCount = 0;
+            let subtotal = 0;
+
+            inventoryData.forEach(item => {
+                const st = productState[item.itemCode];
+                if (st.qty > 0) {
+                    selectedCount += st.qty;
+                    subtotal += st.qty * st.salesPrice;
+                }
+            });
+
+            const vat = subtotal * 0.20;
+            const grandTotal = subtotal + vat;
+
+            document.getElementById('summarySelectedItems').innerText = `${selectedCount} Units`;
+            document.getElementById('summarySubtotal').innerText = `£${subtotal.toFixed(2)}`;
+            document.getElementById('summaryVat').innerText = `£${vat.toFixed(2)}`;
+            document.getElementById('summaryGrandTotal').innerText = `£${grandTotal.toFixed(2)}`;
+            document.getElementById('headerSelectedCount').innerText = selectedCount;
+        }
+
+        function generateFormalQuoteModal() {
+            // Check if items selected
+            const selectedItems = inventoryData.filter(item => productState[item.itemCode].qty > 0);
+
+            if (selectedItems.length === 0) {
+                alert("Please add at least one product with a quantity greater than 0 before generating a formal quote.");
+                return;
+            }
+
+            // Populate Customer Details in Modal
+            const custName = document.getElementById('custName').value || "Customer Name";
+            const custEmail = document.getElementById('custEmail').value || "N/A";
+            const custPhone = document.getElementById('custPhone').value || "N/A";
+            const custAddr1 = document.getElementById('custAddr1').value || "";
+            const custAddr2 = document.getElementById('custAddr2').value || "";
+            const custCity = document.getElementById('custCity').value || "";
+            const custPostcode = document.getElementById('custPostcode').value || "";
+            const quoteRef = document.getElementById('quoteRefNumber').value || "QU1006";
+            const rawDate = document.getElementById('quoteDate').value;
+            const termsText = document.getElementById('quoteTerms').value || "Monthly in Advance 12 Month rolling contract";
+
+            // Format dates
+            const dateObj = rawDate ? new Date(rawDate) : new Date();
+            const formattedDate = dateObj.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+            
+            const expObj = new Date(dateObj);
+            expObj.setDate(expObj.getDate() + 30);
+            const formattedExpiry = expObj.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+
+            document.getElementById('modalQuoteTitle').innerText = `QUOTE ${quoteRef.toUpperCase()}`;
+            document.getElementById('modalQuoteDate').innerText = formattedDate;
+            document.getElementById('modalQuoteExpiry').innerText = formattedExpiry;
+
+            document.getElementById('modalCustName').innerText = custName;
+            document.getElementById('modalCustAddr1').innerText = custAddr1;
+            document.getElementById('modalCustAddr2').innerText = custAddr2;
+            document.getElementById('modalCustCity').innerText = custCity;
+            document.getElementById('modalCustPostcode').innerText = custPostcode;
+            document.getElementById('modalCustEmail').innerText = custEmail;
+            document.getElementById('modalCustPhone').innerText = custPhone;
+            document.getElementById('modalTermsText').innerText = termsText;
+
+            // Populate Itemized Table Rows matching QU1006 style
+            const tableBody = document.getElementById('modalTableItems');
+            tableBody.innerHTML = '';
+
+            let grandSubtotal = 0;
+
+            selectedItems.forEach(item => {
+                const st = productState[item.itemCode];
+                const lineTotal = st.qty * st.salesPrice;
+                grandSubtotal += lineTotal;
+
+                const tr = document.createElement('tr');
+                tr.className = "text-xs";
+
+                tr.innerHTML = `
+                    <td class="py-3 pr-3 align-top">
+                        <p class="font-bold text-slate-900">${item.itemName}</p>
+                        <p class="text-slate-600 text-[11px] leading-relaxed mt-1 text-justify">${item.purchasesDescription}</p>
+                        <p class="text-[10px] font-mono text-slate-400 mt-0.5">Code: ${item.itemCode}</p>
+                    </td>
+                    <td class="py-3 px-3 text-center align-top font-bold text-slate-800">${st.qty.toFixed(2)}</td>
+                    <td class="py-3 px-3 text-right align-top font-medium text-slate-800">£${st.salesPrice.toFixed(2)}</td>
+                    <td class="py-3 px-3 text-center align-top font-medium text-slate-600">20%</td>
+                    <td class="py-3 pl-3 text-right align-top font-bold text-slate-900">£${lineTotal.toFixed(2)}</td>
+                `;
+
+                tableBody.appendChild(tr);
+            });
+
+            const vatAmount = grandSubtotal * 0.20;
+            const totalGbp = grandSubtotal + vatAmount;
+
+            document.getElementById('modalSubtotal').innerText = `£${grandSubtotal.toFixed(2)}`;
+            document.getElementById('modalVat').innerText = `£${vatAmount.toFixed(2)}`;
+            document.getElementById('modalGrandTotal').innerText = `£${totalGbp.toFixed(2)}`;
+
+            // Display Modal
+            document.getElementById('quoteModal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeQuoteModal() {
+            document.getElementById('quoteModal').classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }
+    </script>
+</body>
+</html>
